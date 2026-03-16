@@ -400,14 +400,22 @@
             <!-- NILAI SISWA SECTION -->
             <section id="nilai-siswa" class="tab-content max-w-5xl mx-auto">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
                             <h3 class="text-lg font-bold text-gray-800">Daftar Nilai Siswa</h3>
                             <p class="text-sm text-gray-500">Hasil perhitungan nilai akhir berdasarkan bobot soal.</p>
                         </div>
-                        <button onclick="app.processAnalysis()" class="px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-sky-600 transition">
-                            <i class="fas fa-calculator mr-2"></i> Hitung Nilai
-                        </button>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="app.exportExcelNilai()" class="px-3 py-2 bg-secondary hover:bg-emerald-600 text-white text-sm font-medium rounded-lg shadow-sm transition flex items-center">
+                                <i class="fas fa-file-excel mr-1.5"></i> Excel
+                            </button>
+                            <button onclick="app.printNilai()" class="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg shadow-sm transition flex items-center">
+                                <i class="fas fa-print mr-1.5"></i> Cetak
+                            </button>
+                            <button onclick="app.processAnalysis()" class="px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-sky-600 transition flex items-center">
+                                <i class="fas fa-calculator mr-1.5"></i> Hitung Nilai
+                            </button>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm text-left">
@@ -572,9 +580,10 @@
                     </div>
                 </div>
 
-                <div id="print-template-jawaban" class="print-section text-left mt-10 p-8 border rounded bg-white text-black print:border-none print:mt-0 print:p-0">
+                <!-- Template Print Daftar Nilai Siswa -->
+                <div id="print-template-nilai" class="print-section text-left mt-10 p-8 border rounded bg-white text-black print:border-none print:mt-0 print:p-0">
                     <div class="text-center border-b-2 border-black pb-4 mb-6">
-                        <h1 class="font-bold text-xl uppercase">DATA REKAP JAWABAN SISWA</h1>
+                        <h1 class="font-bold text-xl uppercase">DAFTAR NILAI SISWA</h1>
                         <h2 class="font-bold text-lg print-sekolah">NAMA SEKOLAH</h2>
                         <p class="text-sm print-tahun">Tahun Pelajaran: - | Semester: -</p>
                     </div>
@@ -594,14 +603,19 @@
                             </table>
                         </div>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-xs text-left border-collapse border border-black mb-10">
-                            <thead>
-                                <tr class="bg-gray-100" id="print-jawaban-thead"></tr>
-                            </thead>
-                            <tbody id="print-jawaban-tbody"></tbody>
-                        </table>
-                    </div>
+                    <table class="w-full text-xs text-left border-collapse border border-black mb-10">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="border border-black p-2 text-center w-10">No</th>
+                                <th class="border border-black p-2">Nama Siswa</th>
+                                <th class="border border-black p-2 text-center">Skor PG</th>
+                                <th class="border border-black p-2 text-center">Skor Isian/Esai</th>
+                                <th class="border border-black p-2 text-center">Total Nilai</th>
+                                <th class="border border-black p-2 text-center">Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="print-nilai-tbody"></tbody>
+                    </table>
                     <div class="flex justify-between text-sm text-center mt-10" style="page-break-inside: avoid;">
                         <div class="w-1/2">
                             <p class="mb-16">Mengetahui,<br>Kepala Sekolah</p>
@@ -1204,6 +1218,7 @@
 
             printAnalisis() {
                 if(!this.analysisResult) { showToast("Analisis dulu!", true); return; }
+                document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
                 document.getElementById('print-template-analisis').classList.add('active-print'); window.print();
             },
 
@@ -1220,6 +1235,7 @@
                     tbHtml += `</tr>`;
                 });
                 tbody.innerHTML = tbHtml;
+                document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
                 document.getElementById('print-template-jawaban').classList.add('active-print'); window.print();
             },
 
@@ -1248,6 +1264,45 @@
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Jawaban");
                 XLSX.writeFile(wb, "Data_Jawaban.xlsx");
+            },
+
+            exportExcelNilai() {
+                if(!this.studentGrades || !this.studentGrades.length) { showToast("Hitung nilai terlebih dahulu!", true); return; }
+                const id = this.state.identitas;
+                let data = [
+                    ["DAFTAR NILAI SISWA"], [],
+                    ["Mata Pelajaran", id.mapel, "", "Sekolah", id.sekolah],
+                    ["Kelas/Semester", id.kelas + " / " + id.semester, "", "Tahun Pelajaran", id.tahun],
+                    [],
+                    ["No", "Nama Siswa", "Skor PG", "Skor Isian/Esai", "Total Nilai", "Keterangan"]
+                ];
+                this.studentGrades.forEach((g, i) => {
+                    data.push([i+1, g.nama, g.pg, g.isian, parseFloat(g.total.toFixed(2)), g.keterangan]);
+                });
+                const ws = XLSX.utils.aoa_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Nilai Siswa");
+                XLSX.writeFile(wb, "Daftar_Nilai_Siswa.xlsx");
+            },
+
+            printNilai() {
+                if(!this.studentGrades || !this.studentGrades.length) { showToast("Hitung nilai terlebih dahulu!", true); return; }
+                const tbody = document.getElementById('print-nilai-tbody');
+                let tbHtml = '';
+                this.studentGrades.forEach((g, i) => {
+                    tbHtml += `<tr>
+                        <td class="border border-black p-1 text-center">${i+1}</td>
+                        <td class="border border-black p-1">${g.nama}</td>
+                        <td class="border border-black p-1 text-center">${g.pg}</td>
+                        <td class="border border-black p-1 text-center">${g.isian}</td>
+                        <td class="border border-black p-1 text-center font-bold">${g.total.toFixed(2)}</td>
+                        <td class="border border-black p-1 text-center">${g.keterangan}</td>
+                    </tr>`;
+                });
+                tbody.innerHTML = tbHtml;
+                document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
+                document.getElementById('print-template-nilai').classList.add('active-print'); 
+                window.print();
             }
         };
 
