@@ -49,22 +49,19 @@
             body { background: white; }
             .print-area { width: 100%; margin: 0; padding: 0; }
             .page-break { page-break-before: always; }
-            /* Memastikan header tabel berulang di setiap halaman saat print */
             thead { display: table-header-group; }
             tr { page-break-inside: avoid; }
         }
         
-        /* Toast Notification */
         #toast {
             visibility: hidden; min-width: 250px; background-color: #333; color: #fff;
             text-align: center; border-radius: 8px; padding: 16px; position: fixed;
-            z-index: 50; right: 30px; bottom: 30px; font-size: 14px;
+            z-index: 60; right: 30px; bottom: 30px; font-size: 14px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             transform: translateY(100px); transition: all 0.3s ease;
         }
         #toast.show { visibility: visible; transform: translateY(0); }
 
-        /* Print Sections */
         .print-section { display: none; }
         @media print {
             .print-section.active-print { display: block !important; }
@@ -100,6 +97,9 @@
                 <button onclick="switchTab('input-jawaban')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-colors" data-target="input-jawaban">
                     <i class="fas fa-users w-5"></i> Jawaban Siswa
                 </button>
+                <button onclick="switchTab('nilai-siswa')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-colors" data-target="nilai-siswa">
+                    <i class="fas fa-graduation-cap w-5"></i> Nilai Siswa
+                </button>
                 <button onclick="switchTab('analisis')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-colors" data-target="analisis">
                     <i class="fas fa-microscope w-5"></i> Hasil Analisis
                 </button>
@@ -109,29 +109,24 @@
             </nav>
         </div>
 
-        <!-- Footer / Credits Section -->
         <div class="p-4 border-t border-gray-800 text-center flex-shrink-0 no-print">
             <p class="text-[11px] text-gray-400 mb-3 leading-relaxed">
-                Created by : Supriyadi, S. Pd. Gr - SDN 1 Durian Payung
+                Created by : Supriyadi, S. Pd. Gr<br>SDN 1 Durian Payung
             </p>
             <a href="https://wa.me/6282371962881?text=Hai...saya%20tertarik%20dengan%20aplikasi%20yang%20bapak%20buat" 
                target="_blank" 
                class="inline-flex items-center justify-center gap-2 w-full py-2 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366] hover:text-white border border-[#25D366]/30 rounded-lg text-xs font-semibold transition-all duration-300">
                 <i class="fab fa-whatsapp text-sm"></i> Whatsapp Me
             </a>
-            <button onclick="toggleDonasiModal()" 
-               class="mt-2 inline-flex items-center justify-center gap-2 w-full py-2 bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500 hover:text-white border border-yellow-500/30 rounded-lg text-xs font-semibold transition-all duration-300">
-                <i class="fas fa-hand-holding-heart text-sm"></i> Dukung / Donasi
+            <button onclick="app.openDonasiModal()" class="mt-2 inline-flex items-center justify-center gap-2 w-full py-2 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500 hover:text-white border border-yellow-500/30 rounded-lg text-xs font-semibold transition-all duration-300">
+                <i class="fas fa-hand-holding-heart text-sm"></i> Donasi Dukungan
             </button>
         </div>
     </aside>
 
-    <!-- Overlay for mobile sidebar -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden" onclick="toggleSidebar()"></div>
 
-    <!-- Main Content -->
     <main class="flex-1 flex flex-col h-full overflow-hidden relative">
-        <!-- Header -->
         <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 sm:px-6 flex-shrink-0 no-print">
             <div class="flex items-center gap-4">
                 <button class="md:hidden text-gray-600 hover:text-primary" onclick="toggleSidebar()">
@@ -146,13 +141,10 @@
             </div>
         </header>
 
-        <!-- Content Area -->
         <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 print-area" id="main-scroll">
             
-            <!-- ================= DASHBOARD ================= -->
+            <!-- DASHBOARD SECTION -->
             <section id="dashboard" class="tab-content active max-w-7xl mx-auto">
-                
-                <!-- Banner Welcome / EduAnalisa Info -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8 mb-8 bg-gradient-to-r from-blue-50 to-white relative overflow-hidden">
                     <div class="relative z-10">
                         <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Selamat Datang di <span class="text-primary">EduAnalisa</span> <i class="fas fa-hand-sparkles text-yellow-500 ml-1"></i></h2>
@@ -162,12 +154,10 @@
                             <span>Dikembangkan oleh: <strong class="text-gray-800">Supriyadi, S. Pd. Gr</strong> <span class="hidden sm:inline">(SDN 1 Durian Payung)</span></span>
                         </div>
                     </div>
-                    <!-- Background Decoration -->
                     <i class="fas fa-chart-pie absolute -right-6 -bottom-10 text-9xl text-blue-500/10 transform rotate-12 z-0 pointer-events-none"></i>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <!-- Cards -->
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center gap-4">
                         <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl">
                             <i class="fas fa-users"></i>
@@ -233,14 +223,12 @@
                 </div>
             </section>
 
-            <!-- ================= INPUT DATA SEKOLAH ================= -->
+            <!-- IDENTITAS UJIAN SECTION -->
             <section id="input-data" class="tab-content max-w-4xl mx-auto">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
-                    
                     <form id="form-identitas" onsubmit="event.preventDefault(); app.saveIdentity();">
                         <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Identitas Ujian & Sekolah</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                            <!-- Kolom 1 -->
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Nama Sekolah</label>
@@ -278,8 +266,6 @@
                                     </div>
                                 </div>
                             </div>
-                            
-                            <!-- Kolom 2 -->
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Mata Pelajaran</label>
@@ -302,7 +288,6 @@
                             </div>
                         </div>
 
-                        <!-- Data Pengesahan Laporan -->
                         <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Data Pengesahan Laporan <span class="text-sm font-normal text-gray-500">(Digunakan untuk TTD di Excel/PDF)</span></h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="space-y-4">
@@ -340,7 +325,7 @@
                 </div>
             </section>
 
-            <!-- ================= INPUT KUNCI JAWABAN ================= -->
+            <!-- KUNCI JAWABAN SECTION -->
             <section id="input-kunci" class="tab-content max-w-5xl mx-auto">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -358,7 +343,6 @@
                             </label>
                         </div>
                     </div>
-                    
                     <div class="p-0 overflow-x-auto">
                         <table class="w-full text-sm text-left">
                             <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
@@ -368,9 +352,7 @@
                                     <th class="px-6 py-3">Kunci Jawaban / Bobot Maks</th>
                                 </tr>
                             </thead>
-                            <tbody id="table-kunci-body">
-                                <!-- Generated by JS -->
-                            </tbody>
+                            <tbody id="table-kunci-body"></tbody>
                         </table>
                     </div>
                     <div class="p-4 bg-gray-50 border-t flex justify-end">
@@ -381,13 +363,13 @@
                 </div>
             </section>
 
-            <!-- ================= INPUT JAWABAN SISWA ================= -->
+            <!-- JAWABAN SISWA SECTION -->
             <section id="input-jawaban" class="tab-content max-w-full mx-auto">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-[calc(100vh-140px)]">
                     <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-shrink-0">
                         <div>
                             <h3 class="text-lg font-bold text-gray-800">Entri Jawaban Siswa</h3>
-                            <p class="text-sm text-gray-500">Data <span id="lbl-jml-siswa" class="font-bold text-primary">0</span> Siswa. (Untuk PG masukkan huruf A/B/C/D, untuk Isian/Esai masukkan skor angka).</p>
+                            <p class="text-sm text-gray-500">Data <span id="lbl-jml-siswa" class="font-bold text-primary">0</span> Siswa.</p>
                         </div>
                         <div class="flex gap-2">
                             <button onclick="app.downloadTemplateJawaban()" class="px-4 py-2 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-sm font-medium border border-green-200 transition">
@@ -399,17 +381,12 @@
                             </label>
                         </div>
                     </div>
-                    
                     <div class="flex-1 overflow-auto p-0 relative">
                         <table class="w-full text-sm text-left whitespace-nowrap">
                             <thead class="text-xs text-gray-700 bg-gray-50 border-b sticky top-0 z-10 shadow-sm">
-                                <tr id="table-jawaban-header">
-                                    <!-- Generated by JS -->
-                                </tr>
+                                <tr id="table-jawaban-header"></tr>
                             </thead>
-                            <tbody id="table-jawaban-body">
-                                <!-- Generated by JS -->
-                            </tbody>
+                            <tbody id="table-jawaban-body"></tbody>
                         </table>
                     </div>
                     <div class="p-4 bg-gray-50 border-t flex justify-end flex-shrink-0">
@@ -420,7 +397,39 @@
                 </div>
             </section>
 
-            <!-- ================= ANALISIS ================= -->
+            <!-- NILAI SISWA SECTION -->
+            <section id="nilai-siswa" class="tab-content max-w-5xl mx-auto">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">Daftar Nilai Siswa</h3>
+                            <p class="text-sm text-gray-500">Hasil perhitungan nilai akhir berdasarkan bobot soal.</p>
+                        </div>
+                        <button onclick="app.processAnalysis()" class="px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-sky-600 transition">
+                            <i class="fas fa-calculator mr-2"></i> Hitung Nilai
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+                                <tr>
+                                    <th class="px-6 py-3 w-16 text-center">No</th>
+                                    <th class="px-6 py-3">Nama Siswa</th>
+                                    <th class="px-6 py-3 text-center">Skor PG</th>
+                                    <th class="px-6 py-3 text-center">Skor Isian/Esai</th>
+                                    <th class="px-6 py-3 text-center font-bold">Total Nilai</th>
+                                    <th class="px-6 py-3 text-center">Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-nilai-body">
+                                <tr><td colspan="6" class="px-6 py-8 text-center text-gray-500 italic">Data belum tersedia. Klik "Hitung Nilai" atau lakukan Analisis terlebih dahulu.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ANALISIS SECTION -->
             <section id="analisis" class="tab-content max-w-full mx-auto">
                 <div class="flex space-x-1 bg-gray-200/50 p-1 rounded-lg w-fit mb-6 no-print">
                     <button onclick="switchSubTab('analisis-tabel')" id="tab-btn-tabel" class="px-4 py-2 text-sm font-medium rounded-md bg-white text-gray-800 shadow-sm">Tabel Analisis</button>
@@ -470,19 +479,16 @@
                 </div>
             </section>
 
-            <!-- ================= EXPORT & LAPORAN ================= -->
+            <!-- EXPORT SECTION -->
             <section id="export" class="tab-content max-w-5xl mx-auto">
-                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 no-print">
-                    
-                    <!-- Card Laporan Analisis -->
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center flex flex-col justify-between">
                         <div>
                             <div class="w-16 h-16 bg-blue-50 text-primary rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
                                 <i class="fas fa-file-invoice"></i>
                             </div>
                             <h2 class="text-xl font-bold text-gray-800 mb-2">Laporan Analisis Soal</h2>
-                            <p class="text-sm text-gray-500 mb-6 px-4">Berisi statistik rekapitulasi, tabel analisis (Validitas, Daya Pembeda, Kesukaran), dan form TTD.</p>
+                            <p class="text-sm text-gray-500 mb-6 px-4">Berisi statistik rekapitulasi, tabel analisis, dan form TTD.</p>
                         </div>
                         <div class="flex flex-col gap-3">
                             <button onclick="app.exportExcelLaporan()" class="w-full py-2.5 bg-secondary hover:bg-emerald-600 text-white font-medium rounded-lg shadow-sm transition flex items-center justify-center">
@@ -494,14 +500,13 @@
                         </div>
                     </div>
 
-                    <!-- Card Jawaban Siswa -->
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center flex flex-col justify-between">
                         <div>
                             <div class="w-16 h-16 bg-green-50 text-secondary rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
                                 <i class="fas fa-list-check"></i>
                             </div>
                             <h2 class="text-xl font-bold text-gray-800 mb-2">Data Jawaban Siswa</h2>
-                            <p class="text-sm text-gray-500 mb-6 px-4">Berisi rekap tabel jawaban siswa per butir soal yang telah diinput beserta kolom pengesahan.</p>
+                            <p class="text-sm text-gray-500 mb-6 px-4">Berisi rekap tabel jawaban siswa per butir soal.</p>
                         </div>
                         <div class="flex flex-col gap-3">
                             <button onclick="app.exportExcelJawaban()" class="w-full py-2.5 bg-secondary hover:bg-emerald-600 text-white font-medium rounded-lg shadow-sm transition flex items-center justify-center">
@@ -512,19 +517,15 @@
                             </button>
                         </div>
                     </div>
-
                 </div>
 
-                <!-- ================= HIDDEN PRINT TEMPLATES ================= -->
-
-                <!-- 1. Print Template: Analisis -->
+                <!-- Hidden Print Templates -->
                 <div id="print-template-analisis" class="print-section text-left mt-10 p-8 border rounded bg-white text-black print:border-none print:mt-0 print:p-0">
                     <div class="text-center border-b-2 border-black pb-4 mb-6">
                         <h1 class="font-bold text-xl uppercase">LAPORAN HASIL ANALISIS BUTIR SOAL</h1>
                         <h2 class="font-bold text-lg print-sekolah">NAMA SEKOLAH</h2>
                         <p class="text-sm print-tahun">Tahun Pelajaran: - | Semester: -</p>
                     </div>
-                    
                     <div class="flex justify-between text-sm mb-6">
                         <div>
                             <table class="mb-2">
@@ -541,11 +542,9 @@
                             </table>
                         </div>
                     </div>
-
                     <div class="mb-4 p-3 border border-gray-300 bg-gray-50">
                         <p class="text-sm">Nilai Reliabilitas Tes (KR-20 / Alpha) : <span id="print-reliabilitas" class="font-bold">-</span> <span id="print-reliabilitas-ket" class="italic">(-)</span></p>
                     </div>
-
                     <table class="w-full text-xs text-left border-collapse border border-black mb-10">
                         <thead>
                             <tr class="bg-gray-100">
@@ -556,12 +555,8 @@
                                 <th class="border border-black p-2 text-center">Keputusan</th>
                             </tr>
                         </thead>
-                        <tbody id="print-table-body">
-                            <!-- Injected by JS -->
-                        </tbody>
+                        <tbody id="print-table-body"></tbody>
                     </table>
-                    
-                    <!-- Bagian Pengesahan (Print Analisis) -->
                     <div class="flex justify-between text-sm text-center mt-10" style="page-break-inside: avoid;">
                         <div class="w-1/2">
                             <p class="mb-16">Mengetahui,<br>Kepala Sekolah</p>
@@ -577,14 +572,12 @@
                     </div>
                 </div>
 
-                <!-- 2. Print Template: Jawaban Siswa -->
                 <div id="print-template-jawaban" class="print-section text-left mt-10 p-8 border rounded bg-white text-black print:border-none print:mt-0 print:p-0">
                     <div class="text-center border-b-2 border-black pb-4 mb-6">
                         <h1 class="font-bold text-xl uppercase">DATA REKAP JAWABAN SISWA</h1>
                         <h2 class="font-bold text-lg print-sekolah">NAMA SEKOLAH</h2>
                         <p class="text-sm print-tahun">Tahun Pelajaran: - | Semester: -</p>
                     </div>
-                    
                     <div class="flex justify-between text-sm mb-6">
                         <div>
                             <table class="mb-2">
@@ -601,21 +594,14 @@
                             </table>
                         </div>
                     </div>
-
                     <div class="overflow-x-auto">
                         <table class="w-full text-xs text-left border-collapse border border-black mb-10">
                             <thead>
-                                <tr class="bg-gray-100" id="print-jawaban-thead">
-                                    <!-- Injected by JS (No, Nama, 1, 2, 3...) -->
-                                </tr>
+                                <tr class="bg-gray-100" id="print-jawaban-thead"></tr>
                             </thead>
-                            <tbody id="print-jawaban-tbody">
-                                <!-- Injected by JS -->
-                            </tbody>
+                            <tbody id="print-jawaban-tbody"></tbody>
                         </table>
                     </div>
-                    
-                    <!-- Bagian Pengesahan (Print Jawaban) -->
                     <div class="flex justify-between text-sm text-center mt-10" style="page-break-inside: avoid;">
                         <div class="w-1/2">
                             <p class="mb-16">Mengetahui,<br>Kepala Sekolah</p>
@@ -630,81 +616,49 @@
                         </div>
                     </div>
                 </div>
-
             </section>
-
         </div>
     </main>
 
-    <!-- Donasi Modal -->
-    <div id="donasi-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 transition-opacity duration-300 opacity-0">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300" id="donasi-content">
-            <div class="p-6 text-center">
-                <div class="w-16 h-16 bg-yellow-100 text-yellow-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+    <!-- Modal Donasi -->
+    <div id="donasi-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-sm w-full mx-4 transform scale-95 transition-transform duration-300" id="donasi-content">
+            <div class="flex justify-between items-start mb-4">
+                <div class="w-12 h-12 rounded-full bg-yellow-100 text-yellow-500 flex items-center justify-center text-2xl">
                     <i class="fas fa-hand-holding-heart"></i>
                 </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-2">Dukung EduAnalisa</h3>
-                <p class="text-sm text-gray-600 mb-6">Jika aplikasi ini bermanfaat, Anda dapat mendukung pengembangan lebih lanjut melalui donasi sukarela.</p>
-                
-                <div class="bg-gray-50 rounded-lg p-4 border border-gray-100 mb-6 text-left relative">
-                    <p class="text-xs text-gray-500 mb-1">Bank Tujuan</p>
-                    <p class="font-bold text-gray-800 mb-3 text-lg">Bank BRI</p>
-                    
-                    <p class="text-xs text-gray-500 mb-1">Nomor Rekening</p>
-                    <div class="flex justify-between items-center mb-3">
-                        <p class="font-mono font-bold text-primary text-xl" id="rek-number">009801023322533</p>
-                        <button onclick="copyRekening()" class="w-8 h-8 flex items-center justify-center rounded-md bg-white border border-gray-200 text-gray-500 hover:text-primary hover:border-primary transition shadow-sm" title="Salin Rekening">
-                            <i class="fas fa-copy"></i>
-                        </button>
-                    </div>
-                    
-                    <p class="text-xs text-gray-500 mb-1">Atas Nama</p>
-                    <p class="font-bold text-gray-800">SUPRIYADI</p>
-                </div>
-                
-                <button onclick="toggleDonasiModal()" class="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition">
-                    Tutup
+                <button onclick="app.closeDonasiModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Dukung EduAnalisa</h3>
+            <p class="text-sm text-gray-600 mb-6 leading-relaxed">
+                Terima kasih telah menggunakan aplikasi ini! Jika EduAnalisa membantu meringankan pekerjaan Anda, Anda dapat mendukung pengembangannya dengan berdonasi seikhlasnya melalui rekening di bawah ini.
+            </p>
+            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-6">
+                <div class="flex items-center gap-2 mb-3">
+                    <i class="fas fa-university text-blue-700"></i>
+                    <span class="font-bold text-blue-800 text-sm">Bank BRI</span>
+                </div>
+                <div class="mb-1 text-xs text-gray-500 uppercase tracking-wider">Nomor Rekening</div>
+                <div class="flex justify-between items-center bg-white border border-gray-200 rounded px-3 py-2">
+                    <div class="font-mono text-lg font-bold text-gray-800 tracking-wider">009801023322533</div>
+                    <button onclick="app.copyRekening()" class="text-primary hover:text-sky-700 bg-sky-50 p-1.5 rounded" title="Salin Rekening">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <div class="mt-3 text-xs text-gray-500 uppercase tracking-wider">Atas Nama</div>
+                <div class="font-semibold text-gray-700">SUPRIYADI</div>
+            </div>
+            <button onclick="app.closeDonasiModal()" class="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition-colors">
+                Tutup
+            </button>
         </div>
     </div>
 
-    <!-- Toast Component -->
     <div id="toast">Notifikasi</div>
 
-    <!-- Application Logic -->
     <script>
-        // --- UI Interactions ---
-        function toggleDonasiModal() {
-            const modal = document.getElementById('donasi-modal');
-            const content = document.getElementById('donasi-content');
-            if (modal.classList.contains('hidden')) {
-                modal.classList.remove('hidden');
-                setTimeout(() => {
-                    modal.classList.remove('opacity-0');
-                    content.classList.remove('scale-95');
-                }, 10);
-            } else {
-                modal.classList.add('opacity-0');
-                content.classList.add('scale-95');
-                setTimeout(() => {
-                    modal.classList.add('hidden');
-                }, 300);
-            }
-        }
-
-        function copyRekening() {
-            const rek = "009801023322533";
-            // Menggunakan execCommand agar kompatibel dan aman di dalam iFrame
-            const el = document.createElement('textarea');
-            el.value = rek;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            showToast("Nomor Rekening berhasil disalin!");
-        }
-
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
@@ -727,7 +681,6 @@
             });
             document.getElementById(tabId).classList.add('active');
             
-            // Sembunyikan semua print template jika sedang pindah tab biasa
             document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
             
             const titles = {
@@ -735,6 +688,7 @@
                 'input-data': 'Identitas Ujian',
                 'input-kunci': 'Master Kunci Jawaban',
                 'input-jawaban': 'Entri Jawaban Siswa',
+                'nilai-siswa': 'Daftar Nilai Siswa',
                 'analisis': 'Hasil Analisis Butir Soal',
                 'export': 'Cetak Laporan'
             };
@@ -745,16 +699,15 @@
             if(tabId === 'dashboard') app.updateDashboard();
             if(tabId === 'input-kunci') app.renderKunciTable();
             if(tabId === 'input-jawaban') app.renderJawabanTable();
+            if(tabId === 'nilai-siswa') app.renderNilaiTable();
             if(tabId === 'analisis' && app.analysisResult) app.renderAnalisis();
         }
 
         function switchSubTab(tabId) {
             document.querySelectorAll('.sub-tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById(tabId).classList.remove('hidden');
-            
             const btnTabel = document.getElementById('tab-btn-tabel');
             const btnGrafik = document.getElementById('tab-btn-grafik');
-            
             if(tabId === 'analisis-tabel') {
                 btnTabel.className = "px-4 py-2 text-sm font-medium rounded-md bg-white text-gray-800 shadow-sm";
                 btnGrafik.className = "px-4 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-800";
@@ -773,7 +726,13 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // --- Core Application Logic ---
+        // Close modal when clicking outside
+        document.getElementById('donasi-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                app.closeDonasiModal();
+            }
+        });
+
         const app = {
             state: {
                 identitas: { 
@@ -786,6 +745,7 @@
                 jawabanSiswa: [],
             },
             analysisResult: null,
+            studentGrades: [],
             charts: {},
 
             init() {
@@ -798,10 +758,6 @@
                 const saved = localStorage.getItem('eduAnalisaData');
                 if (saved) {
                     this.state = JSON.parse(saved);
-                    if(!this.state.identitas.tempatTanggal) this.state.identitas.tempatTanggal = '';
-                    if(!this.state.identitas.kepalaSekolah) this.state.identitas.kepalaSekolah = '';
-                    if(!this.state.identitas.nipKepsek) this.state.identitas.nipKepsek = '';
-                    if(!this.state.identitas.nipGuru) this.state.identitas.nipGuru = '';
                 } else {
                     this.generateEmptyGrids();
                 }
@@ -812,10 +768,45 @@
             },
             
             resetAllData() {
-                if(confirm("Apakah Anda yakin ingin menghapus semua data? Tindakan ini tidak dapat dibatalkan.")) {
+                if(confirm("Apakah Anda yakin ingin menghapus semua data?")) {
                     localStorage.removeItem('eduAnalisaData');
                     location.reload();
                 }
+            },
+
+            openDonasiModal() {
+                const modal = document.getElementById('donasi-modal');
+                const content = document.getElementById('donasi-content');
+                modal.classList.remove('hidden');
+                // Trigger reflow for animation
+                void modal.offsetWidth;
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            },
+
+            closeDonasiModal() {
+                const modal = document.getElementById('donasi-modal');
+                const content = document.getElementById('donasi-content');
+                modal.classList.add('opacity-0');
+                content.classList.add('scale-95');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300); // Matches the duration-300 class
+            },
+
+            copyRekening() {
+                const rekening = "009801023322533";
+                const textarea = document.createElement('textarea');
+                textarea.value = rekening;
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast("Nomor rekening disalin!");
+                } catch (err) {
+                    showToast("Gagal menyalin rekening", true);
+                }
+                document.body.removeChild(textarea);
             },
 
             generateEmptyGrids() {
@@ -844,20 +835,15 @@
                 if(id.mapel) document.getElementById('in-mapel').value = id.mapel;
                 if(id.kelas) document.getElementById('in-kelas').value = id.kelas;
                 if(id.guru) document.getElementById('in-guru').value = id.guru;
-                
                 if(id.tempatTanggal) document.getElementById('in-tempat-tanggal').value = id.tempatTanggal;
                 if(id.kepalaSekolah) document.getElementById('in-kepsek').value = id.kepalaSekolah;
                 if(id.nipKepsek) document.getElementById('in-nip-kepsek').value = id.nipKepsek;
                 if(id.nipGuru) document.getElementById('in-nip-guru').value = id.nipGuru;
-
                 document.getElementById('in-jmlsiswa').value = conf.jmlSiswa;
                 document.getElementById('in-jmlsoal').value = conf.jmlSoal;
             },
 
             saveIdentity() {
-                const oldSiswa = this.state.config.jmlSiswa;
-                const oldSoal = this.state.config.jmlSoal;
-                
                 this.state.identitas = {
                     sekolah: document.getElementById('in-sekolah').value,
                     jenjang: document.getElementById('in-jenjang').value,
@@ -872,36 +858,28 @@
                     nipKepsek: document.getElementById('in-nip-kepsek').value,
                     nipGuru: document.getElementById('in-nip-guru').value
                 };
-                
                 const newSiswa = parseInt(document.getElementById('in-jmlsiswa').value);
                 const newSoal = parseInt(document.getElementById('in-jmlsoal').value);
-                
-                this.state.config.jmlSiswa = newSiswa;
-                this.state.config.jmlSoal = newSoal;
-
-                if(oldSiswa !== newSiswa || oldSoal !== newSoal) {
+                if(this.state.config.jmlSiswa !== newSiswa || this.state.config.jmlSoal !== newSoal) {
+                    this.state.config.jmlSiswa = newSiswa;
+                    this.state.config.jmlSoal = newSoal;
                     this.generateEmptyGrids();
-                    showToast("Identitas disimpan. Grid Kunci & Jawaban disesuaikan.");
-                } else {
-                    showToast("Identitas berhasil disimpan!");
                 }
-                
                 this.saveData();
                 this.updateDashboard();
-                setTimeout(() => switchTab('dashboard'), 500);
+                showToast("Identitas disimpan!");
+                switchTab('dashboard');
             },
 
             updateDashboard() {
                 const id = this.state.identitas;
                 document.getElementById('dash-siswa').innerText = this.state.config.jmlSiswa;
                 document.getElementById('dash-soal').innerText = this.state.config.jmlSoal;
-                
                 document.getElementById('info-sekolah').innerText = id.sekolah || '-';
                 document.getElementById('info-mapel').innerText = id.mapel || '-';
                 document.getElementById('info-kelas').innerText = `${id.kelas || '-'} / ${id.semester}`;
                 document.getElementById('info-guru').innerText = id.guru || '-';
                 
-                // Set Global HTML Print values (untuk class-based karena dipakai di 2 template)
                 document.querySelectorAll('.print-sekolah').forEach(el => el.innerText = id.sekolah || 'NAMA SEKOLAH');
                 document.querySelectorAll('.print-tahun').forEach(el => el.innerText = `Tahun Pelajaran: ${id.tahun} | Semester: ${id.semester}`);
                 document.querySelectorAll('.print-mapel').forEach(el => el.innerText = id.mapel);
@@ -910,14 +888,11 @@
                 document.querySelectorAll('.print-guru').forEach(el => el.innerText = id.guru);
                 document.querySelectorAll('.print-jmlsiswa').forEach(el => el.innerText = this.state.config.jmlSiswa);
                 document.querySelectorAll('.print-jmlsoal').forEach(el => el.innerText = this.state.config.jmlSoal);
-
-                // TTD Section (HTML Print)
                 document.querySelectorAll('.print-ttd-kepsek').forEach(el => el.innerText = id.kepalaSekolah || '...........................................');
                 document.querySelectorAll('.print-nip-kepsek').forEach(el => el.innerText = id.nipKepsek ? `NIP. ${id.nipKepsek}` : 'NIP. .........................');
                 document.querySelectorAll('.print-tempat-tanggal').forEach(el => el.innerText = id.tempatTanggal ? `${id.tempatTanggal}` : '......................., ......................');
                 document.querySelectorAll('.print-ttd-guru').forEach(el => el.innerText = id.guru || '...........................................');
                 document.querySelectorAll('.print-nip-guru').forEach(el => el.innerText = id.nipGuru ? `NIP. ${id.nipGuru}` : 'NIP. .........................');
-
                 document.getElementById('lbl-jml-soal').innerText = this.state.config.jmlSoal;
                 document.getElementById('lbl-jml-siswa').innerText = this.state.config.jmlSiswa;
             },
@@ -938,7 +913,7 @@
                             </select>
                         </td>
                         <td class="px-6 py-2">
-                            <input type="text" class="p-1.5 border rounded w-full uppercase key-val" data-idx="${i}" value="${k.jawaban}" placeholder="A/B/C/D atau Bobot Skor Maksimal">
+                            <input type="text" class="p-1.5 border rounded w-full uppercase key-val" data-idx="${i}" value="${k.jawaban}" placeholder="A/B/C/D atau Bobot Maks">
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -953,30 +928,23 @@
                     this.state.kunci[i].jawaban = vals[i].value.trim().toUpperCase();
                 });
                 this.saveData();
-                showToast("Kunci Jawaban tersimpan!");
             },
 
             renderJawabanTable() {
                 const thead = document.getElementById('table-jawaban-header');
                 const tbody = document.getElementById('table-jawaban-body');
-                
                 let thHtml = `<th class="px-4 py-3 bg-gray-100 sticky left-0 z-20 w-12 text-center">No</th>
                               <th class="px-4 py-3 bg-gray-100 sticky left-12 z-20 min-w-[150px]">Nama Siswa</th>`;
-                for(let i=0; i<this.state.config.jmlSoal; i++) {
-                    thHtml += `<th class="px-2 py-3 text-center w-10 border-l border-gray-200" title="${this.state.kunci[i].tipe}">${i+1}</th>`;
-                }
+                for(let i=0; i<this.state.config.jmlSoal; i++) thHtml += `<th class="px-2 py-3 text-center w-10 border-l border-gray-200">${i+1}</th>`;
                 thead.innerHTML = thHtml;
-
                 tbody.innerHTML = '';
                 this.state.jawabanSiswa.forEach((s, i) => {
                     const tr = document.createElement('tr');
                     tr.className = "bg-white border-b hover:bg-gray-50";
-                    
                     let tdHtml = `<td class="px-4 py-2 text-center sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-10">${i + 1}</td>
                                   <td class="px-4 py-2 sticky left-12 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-10">
                                     <input type="text" class="p-1 border-b border-transparent hover:border-gray-300 focus:border-primary outline-none w-full bg-transparent ans-name" data-idx="${i}" value="${s.nama}">
                                   </td>`;
-                    
                     for(let j=0; j<this.state.config.jmlSoal; j++) {
                         tdHtml += `<td class="px-1 py-1 border-l border-gray-100">
                             <input type="text" class="w-8 p-1 text-center border border-gray-200 rounded text-xs uppercase focus:ring-1 focus:ring-primary outline-none ans-val" data-sidx="${i}" data-qidx="${j}" value="${s.jawaban[j] || ''}">
@@ -988,161 +956,166 @@
             },
 
             saveJawaban() {
-                if(!document.querySelector('.ans-name')) return; // Guard
                 const names = document.querySelectorAll('.ans-name');
                 const inputs = document.querySelectorAll('.ans-val');
-                names.forEach((el, i) => { this.state.jawabanSiswa[i].nama = el.value.trim(); });
-                inputs.forEach(el => {
-                    const sIdx = el.dataset.sidx;
-                    const qIdx = el.dataset.qidx;
-                    this.state.jawabanSiswa[sIdx].jawaban[qIdx] = el.value.trim().toUpperCase();
-                });
-                this.saveData();
-                showToast("Jawaban Siswa tersimpan!");
+                if(names.length) {
+                    names.forEach((el, i) => { this.state.jawabanSiswa[i].nama = el.value.trim(); });
+                    inputs.forEach(el => {
+                        const sIdx = el.dataset.sidx;
+                        const qIdx = el.dataset.qidx;
+                        this.state.jawabanSiswa[sIdx].jawaban[qIdx] = el.value.trim().toUpperCase();
+                    });
+                    this.saveData();
+                }
             },
 
             processAnalysis() {
-                if(document.getElementById('input-kunci').classList.contains('active')) this.saveKunci();
-                if(document.getElementById('input-jawaban').classList.contains('active')) this.saveJawaban();
-
+                this.saveKunci();
+                this.saveJawaban();
                 const K = this.state.config.jmlSoal;
                 const N = this.state.config.jmlSiswa;
                 const keys = this.state.kunci;
                 const students = this.state.jawabanSiswa;
 
+                let maxScoreTotal = 0;
+                keys.forEach(k => maxScoreTotal += (k.tipe === 'PG' ? 1 : (parseFloat(k.jawaban) || 0)));
+
                 let scoresMatrix = []; 
                 let studentTotals = [];
                 let questionCorrectCounts = Array(K).fill(0);
+                let grades = [];
 
                 students.forEach((s, sIdx) => {
-                    let stTotal = 0;
-                    let stRow = [];
+                    let stTotalRaw = 0;
+                    let pgScore = 0;
+                    let isianScore = 0;
+                    let stRowBinary = [];
+
                     keys.forEach((k, qIdx) => {
-                        let score = 0;
+                        let binaryScore = 0;
                         let sAns = s.jawaban[qIdx];
-                        
                         if(k.tipe === 'PG') {
-                            score = (sAns === k.jawaban && sAns !== '') ? 1 : 0;
+                            let correct = (sAns === k.jawaban && sAns !== '');
+                            binaryScore = correct ? 1 : 0;
+                            pgScore += binaryScore;
                         } else {
-                            score = parseFloat(sAns) > 0 ? 1 : 0; 
-                            stTotal += parseFloat(sAns) || 0; 
+                            let rawVal = parseFloat(sAns) || 0;
+                            isianScore += rawVal;
+                            binaryScore = rawVal > 0 ? 1 : 0;
                         }
-                        
-                        if(k.tipe === 'PG') stTotal += score;
-                        stRow.push(score);
-                        if(score > 0) questionCorrectCounts[qIdx]++;
+                        stRowBinary.push(binaryScore);
+                        if(binaryScore > 0) questionCorrectCounts[qIdx]++;
                     });
-                    scoresMatrix.push(stRow);
-                    studentTotals.push({ id: sIdx, total: stTotal, row: stRow });
+
+                    stTotalRaw = pgScore + isianScore;
+                    let finalGrade = maxScoreTotal > 0 ? (stTotalRaw / maxScoreTotal) * 100 : 0;
+                    
+                    studentTotals.push({ id: sIdx, total: stTotalRaw, row: stRowBinary });
+                    grades.push({ 
+                        nama: s.nama, 
+                        pg: pgScore, 
+                        isian: isianScore, 
+                        total: finalGrade,
+                        keterangan: finalGrade >= 75 ? 'Tuntas' : 'Belum Tuntas'
+                    });
                 });
+
+                this.studentGrades = grades;
+
+                // Analisis Statistik Dasar
+                let meanTotal = studentTotals.reduce((sum, s) => sum + s.total, 0) / N;
+                let varTotal = studentTotals.reduce((sum, s) => sum + Math.pow(s.total - meanTotal, 2), 0) / N;
+                let sumPQ = 0;
+                let results = [];
+                let validCount = 0;
 
                 let sortedStudents = [...studentTotals].sort((a, b) => b.total - a.total);
                 let halfN = Math.floor(N / 2);
                 let topGroup = sortedStudents.slice(0, halfN);
                 let bottomGroup = sortedStudents.slice(-halfN);
 
-                let results = [];
-                let validCount = 0;
-
-                let meanTotal = studentTotals.reduce((sum, s) => sum + s.total, 0) / N;
-                let varTotal = studentTotals.reduce((sum, s) => sum + Math.pow(s.total - meanTotal, 2), 0) / N;
-                let sumPQ = 0;
-
                 for(let q=0; q<K; q++) {
                     let P = questionCorrectCounts[q] / N;
                     let pCat = P > 0.7 ? 'Mudah' : (P >= 0.3 ? 'Sedang' : 'Sukar');
-
                     let BA = topGroup.filter(s => s.row[q] > 0).length;
                     let BB = bottomGroup.filter(s => s.row[q] > 0).length;
-                    let D = (BA - BB) / halfN;
+                    let D = halfN > 0 ? (BA - BB) / halfN : 0;
                     let dCat = D >= 0.4 ? 'Sangat Baik' : (D >= 0.3 ? 'Baik' : (D >= 0.2 ? 'Cukup' : 'Jelek'));
-
-                    let meanX = 0, varX = 0, covXY = 0;
-                    studentTotals.forEach(s => { meanX += s.row[q]; });
-                    meanX /= N;
+                    let covXY = 0, varX = 0, meanX = questionCorrectCounts[q] / N;
                     studentTotals.forEach(s => {
                         varX += Math.pow(s.row[q] - meanX, 2);
                         covXY += (s.row[q] - meanX) * (s.total - meanTotal);
                     });
                     varX /= N; covXY /= N;
-                    
-                    let stdX = Math.sqrt(varX);
-                    let stdY = Math.sqrt(varTotal);
-                    let r = (stdX > 0 && stdY > 0) ? covXY / (stdX * stdY) : 0;
-                    
+                    let r = (varX > 0 && varTotal > 0) ? covXY / (Math.sqrt(varX) * Math.sqrt(varTotal)) : 0;
                     let rCat = r >= 0.4 ? 'Valid' : (r >= 0.2 ? 'Cukup Valid' : 'Tidak Valid');
                     if (r >= 0.4) validCount++;
-
                     sumPQ += (P * (1 - P));
-
-                    let rec = 'Direvisi';
-                    if (r >= 0.3 && D >= 0.25 && P >= 0.2 && P <= 0.8) rec = 'Dipakai';
-                    if (r < 0.2 || D < 0.1) rec = 'Dibuang';
-
+                    let rec = (r >= 0.3 && D >= 0.25 && P >= 0.2 && P <= 0.8) ? 'Dipakai' : (r < 0.2 || D < 0.1 ? 'Dibuang' : 'Direvisi');
                     results.push({ no: q+1, p: P, pCat, d: D, dCat, r: r, rCat, rec });
                 }
 
-                let reliabilitas = 0;
-                if(varTotal > 0 && K > 1) {
-                    reliabilitas = (K / (K - 1)) * (1 - (sumPQ / varTotal));
-                }
+                let reliabilitas = (K > 1 && varTotal > 0) ? (K / (K - 1)) * (1 - (sumPQ / varTotal)) : 0;
                 let relCat = reliabilitas >= 0.8 ? 'Sangat Tinggi' : (reliabilitas >= 0.6 ? 'Tinggi' : (reliabilitas >= 0.4 ? 'Cukup' : 'Rendah'));
 
                 this.analysisResult = { items: results, reliabilitas, relCat, validCount, K };
                 
-                showToast("Analisis Selesai!");
                 this.renderAnalisis();
-                switchTab('analisis');
+                this.renderNilaiTable();
+                showToast("Analisis & Perhitungan Nilai Selesai!");
+            },
+
+            renderNilaiTable() {
+                const tbody = document.getElementById('table-nilai-body');
+                if(!this.studentGrades.length) return;
+                tbody.innerHTML = '';
+                this.studentGrades.forEach((g, i) => {
+                    const tr = document.createElement('tr');
+                    tr.className = "bg-white border-b hover:bg-gray-50";
+                    tr.innerHTML = `
+                        <td class="px-6 py-3 text-center">${i + 1}</td>
+                        <td class="px-6 py-3 font-medium">${g.nama}</td>
+                        <td class="px-6 py-3 text-center">${g.pg}</td>
+                        <td class="px-6 py-3 text-center">${g.isian}</td>
+                        <td class="px-6 py-3 text-center font-bold text-primary">${g.total.toFixed(2)}</td>
+                        <td class="px-6 py-3 text-center">
+                            <span class="px-2 py-1 rounded text-xs font-bold ${g.keterangan === 'Tuntas' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${g.keterangan}</span>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
             },
 
             renderAnalisis() {
                 if(!this.analysisResult) return;
                 const res = this.analysisResult;
-
                 document.getElementById('dash-valid').innerText = `${res.validCount} / ${res.K}`;
                 document.getElementById('dash-reliabilitas').innerText = res.reliabilitas.toFixed(2);
                 if(document.getElementById('print-reliabilitas')) {
                     document.getElementById('print-reliabilitas').innerText = res.reliabilitas.toFixed(3);
                     document.getElementById('print-reliabilitas-ket').innerText = `(${res.relCat})`;
                 }
-
                 const tbody = document.getElementById('table-analisis-body');
                 const printTbody = document.getElementById('print-table-body');
-                tbody.innerHTML = '';
-                printTbody.innerHTML = '';
-
+                tbody.innerHTML = ''; printTbody.innerHTML = '';
                 res.items.forEach(item => {
                     let pColor = item.pCat === 'Sukar' ? 'text-red-600' : (item.pCat === 'Mudah' ? 'text-green-600' : 'text-yellow-600');
                     let rColor = item.rCat === 'Tidak Valid' ? 'text-red-600' : 'text-green-600';
                     let recBg = item.rec === 'Dipakai' ? 'bg-green-100 text-green-800' : (item.rec === 'Dibuang' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800');
-
                     const tr = document.createElement('tr');
                     tr.className = "bg-white border-b hover:bg-gray-50";
-                    tr.innerHTML = `
-                        <td class="px-4 py-2 text-center border-r font-medium">${item.no}</td>
-                        <td class="px-4 py-2 border-r">
-                            <span class="font-bold">${item.p.toFixed(2)}</span> <span class="text-xs ${pColor}">(${item.pCat})</span>
-                        </td>
-                        <td class="px-4 py-2 border-r">
-                            <span class="font-bold">${item.d.toFixed(2)}</span> <span class="text-xs text-gray-500">(${item.dCat})</span>
-                        </td>
-                        <td class="px-4 py-2 border-r">
-                            <span class="font-bold ${rColor}">${item.r.toFixed(2)}</span> <span class="text-xs text-gray-500">(${item.rCat})</span>
-                        </td>
-                        <td class="px-4 py-2 text-center">
-                            <span class="px-2 py-1 rounded text-xs font-bold ${recBg}">${item.rec}</span>
-                        </td>
-                    `;
+                    tr.innerHTML = `<td class="px-4 py-2 text-center border-r font-medium">${item.no}</td>
+                        <td class="px-4 py-2 border-r"><span class="font-bold">${item.p.toFixed(2)}</span> <span class="text-xs ${pColor}">(${item.pCat})</span></td>
+                        <td class="px-4 py-2 border-r"><span class="font-bold">${item.d.toFixed(2)}</span> <span class="text-xs text-gray-500">(${item.dCat})</span></td>
+                        <td class="px-4 py-2 border-r"><span class="font-bold ${rColor}">${item.r.toFixed(2)}</span> <span class="text-xs text-gray-500">(${item.rCat})</span></td>
+                        <td class="px-4 py-2 text-center"><span class="px-2 py-1 rounded text-xs font-bold ${recBg}">${item.rec}</span></td>`;
                     tbody.appendChild(tr);
-
                     const ptr = document.createElement('tr');
-                    ptr.innerHTML = `
-                        <td class="border border-black p-1 text-center">${item.no}</td>
-                        <td class="border border-black p-1 text-center">${item.p.toFixed(2)} <br><span class="italic">(${item.pCat})</span></td>
-                        <td class="border border-black p-1 text-center">${item.d.toFixed(2)} <br><span class="italic">(${item.dCat})</span></td>
-                        <td class="border border-black p-1 text-center">${item.r.toFixed(2)} <br><span class="italic">(${item.rCat})</span></td>
-                        <td class="border border-black p-1 text-center font-bold">${item.rec}</td>
-                    `;
+                    ptr.innerHTML = `<td class="border border-black p-1 text-center">${item.no}</td>
+                        <td class="border border-black p-1 text-center">${item.p.toFixed(2)} <br>(${item.pCat})</td>
+                        <td class="border border-black p-1 text-center">${item.d.toFixed(2)} <br>(${item.dCat})</td>
+                        <td class="border border-black p-1 text-center">${item.r.toFixed(2)} <br>(${item.rCat})</td>
+                        <td class="border border-black p-1 text-center font-bold">${item.rec}</td>`;
                     printTbody.appendChild(ptr);
                 });
             },
@@ -1150,52 +1123,30 @@
             renderCharts() {
                 if(!this.analysisResult) return;
                 const items = this.analysisResult.items;
-
                 let pDist = { Sukar: 0, Sedang: 0, Mudah: 0 };
                 let recDist = { Dipakai: 0, Direvisi: 0, Dibuang: 0 };
                 items.forEach(i => { pDist[i.pCat]++; recDist[i.rec]++; });
-
                 if(this.charts.kesukaran) this.charts.kesukaran.destroy();
-                const ctx1 = document.getElementById('chartKesukaran').getContext('2d');
-                this.charts.kesukaran = new Chart(ctx1, {
+                this.charts.kesukaran = new Chart(document.getElementById('chartKesukaran').getContext('2d'), {
                     type: 'bar',
-                    data: {
-                        labels: ['Sukar', 'Sedang', 'Mudah'],
-                        datasets: [{
-                            label: 'Jumlah Soal',
-                            data: [pDist.Sukar, pDist.Sedang, pDist.Mudah],
-                            backgroundColor: ['#f87171', '#fbbf24', '#34d399'],
-                            borderWidth: 0
-                        }]
-                    },
+                    data: { labels: ['Sukar', 'Sedang', 'Mudah'], datasets: [{ data: [pDist.Sukar, pDist.Sedang, pDist.Mudah], backgroundColor: ['#f87171', '#fbbf24', '#34d399'] }] },
                     options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
                 });
-
                 if(this.charts.rekomendasi) this.charts.rekomendasi.destroy();
-                const ctx2 = document.getElementById('chartRekomendasi').getContext('2d');
-                this.charts.rekomendasi = new Chart(ctx2, {
+                this.charts.rekomendasi = new Chart(document.getElementById('chartRekomendasi').getContext('2d'), {
                     type: 'doughnut',
-                    data: {
-                        labels: ['Dipakai', 'Direvisi', 'Dibuang'],
-                        datasets: [{
-                            data: [recDist.Dipakai, recDist.Direvisi, recDist.Dibuang],
-                            backgroundColor: ['#10b981', '#fbbf24', '#ef4444'],
-                            borderWidth: 0
-                        }]
-                    },
+                    data: { labels: ['Dipakai', 'Direvisi', 'Dibuang'], datasets: [{ data: [recDist.Dipakai, recDist.Direvisi, recDist.Dibuang], backgroundColor: ['#10b981', '#fbbf24', '#ef4444'] }] },
                     options: { maintainAspectRatio: false }
                 });
             },
-
-            // --- EXCEL IMPORT / EXPORT LOGICS ---
 
             downloadTemplateKunci() {
                 let data = [["No", "Jenis Soal (PG/Isian/Esai)", "Kunci/Bobot"]];
                 for(let i=1; i<=this.state.config.jmlSoal; i++) data.push([i, "PG", ""]);
                 const ws = XLSX.utils.aoa_to_sheet(data);
                 const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-                XLSX.writeFile(wb, "Template_Kunci_Jawaban.xlsx");
+                XLSX.utils.book_append_sheet(wb, ws, "Kunci");
+                XLSX.writeFile(wb, "Template_Kunci.xlsx");
             },
 
             downloadTemplateJawaban() {
@@ -1209,316 +1160,98 @@
                 }
                 const ws = XLSX.utils.aoa_to_sheet(data);
                 const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-                XLSX.writeFile(wb, "Template_Jawaban_Siswa.xlsx");
+                XLSX.utils.book_append_sheet(wb, ws, "Jawaban");
+                XLSX.writeFile(wb, "Template_Jawaban.xlsx");
             },
 
             importKunci(event) {
-                const file = event.target.files[0];
-                if(!file) return;
+                const file = event.target.files[0]; if(!file) return;
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const sheetName = workbook.SheetNames[0];
-                    const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {header: 1});
+                    const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+                    const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
                     for(let i=1; i<json.length; i++) {
-                        let row = json[i];
-                        if(!row || row.length < 2) continue;
+                        let row = json[i]; if(!row || row.length < 2) continue;
                         let idx = i - 1;
                         if(idx < this.state.config.jmlSoal) {
                             this.state.kunci[idx].tipe = row[1] || 'PG';
                             this.state.kunci[idx].jawaban = (row[2] || '').toString().trim().toUpperCase();
                         }
                     }
-                    this.renderKunciTable();
-                    this.saveData();
-                    showToast("Kunci berhasil diimport!");
+                    this.renderKunciTable(); this.saveData(); showToast("Kunci diimport!");
                 };
                 reader.readAsArrayBuffer(file);
-                event.target.value = '';
             },
 
             importJawaban(event) {
-                const file = event.target.files[0];
-                if(!file) return;
+                const file = event.target.files[0]; if(!file) return;
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const sheetName = workbook.SheetNames[0];
-                    const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {header: 1});
+                    const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+                    const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
                     for(let i=1; i<json.length; i++) {
-                        let row = json[i];
-                        if(!row || row.length < 2) continue;
+                        let row = json[i]; if(!row || row.length < 2) continue;
                         let sIdx = i - 1;
                         if(sIdx < this.state.config.jmlSiswa) {
                             this.state.jawabanSiswa[sIdx].nama = row[1] || `Siswa ${i}`;
-                            for(let q=0; q<this.state.config.jmlSoal; q++) {
-                                this.state.jawabanSiswa[sIdx].jawaban[q] = (row[q+2] || '').toString().trim().toUpperCase();
-                            }
+                            for(let q=0; q<this.state.config.jmlSoal; q++) this.state.jawabanSiswa[sIdx].jawaban[q] = (row[q+2] || '').toString().trim().toUpperCase();
                         }
                     }
-                    this.renderJawabanTable();
-                    this.saveData();
-                    showToast("Jawaban berhasil diimport!");
+                    this.renderJawabanTable(); this.saveData(); showToast("Jawaban diimport!");
                 };
                 reader.readAsArrayBuffer(file);
-                event.target.value = '';
             },
 
-            // --- 1. CETAK / EXPORT ANALISIS ---
-            
             printAnalisis() {
-                if(!this.analysisResult) {
-                    showToast("Lakukan analisis terlebih dahulu!", true);
-                    return;
-                }
-                document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
-                document.getElementById('print-template-analisis').classList.add('active-print');
-                window.print();
+                if(!this.analysisResult) { showToast("Analisis dulu!", true); return; }
+                document.getElementById('print-template-analisis').classList.add('active-print'); window.print();
             },
-
-            exportExcelLaporan() {
-                if(!this.analysisResult) {
-                    showToast("Lakukan analisis terlebih dahulu!", true);
-                    return;
-                }
-                const id = this.state.identitas;
-                const textTempat = id.tempatTanggal ? `${id.tempatTanggal}` : '......................., ..........................';
-                const namaKepsek = id.kepalaSekolah ? id.kepalaSekolah : '.........................................';
-                const nipKepsek = id.nipKepsek ? `NIP. ${id.nipKepsek}` : 'NIP. .........................';
-                const namaGuru = id.guru ? id.guru : '.........................................';
-                const nipGuru = id.nipGuru ? `NIP. ${id.nipGuru}` : 'NIP. .........................';
-
-                let data = [
-                    ["LAPORAN HASIL ANALISIS BUTIR SOAL"],
-                    [],
-                    ["Mata Pelajaran", ": " + id.mapel, "", "", "Tahun Pelajaran", ": " + id.tahun, "", ""],
-                    ["Kelas / Semester", ": " + id.kelas + " / " + id.semester, "", "", "Jenis Tes", ": " + id.jenis, "", ""],
-                    ["Nama Sekolah", ": " + id.sekolah, "", "", "Jml Siswa/Soal", ": " + this.state.config.jmlSiswa + " / " + this.state.config.jmlSoal, "", ""],
-                    ["Reliabilitas Tes", ": " + this.analysisResult.reliabilitas.toFixed(3) + " (" + this.analysisResult.relCat + ")", "", "", "", "", "", ""],
-                    [],
-                    ["No", "Tk. Kesukaran (P)", "Kriteria P", "Daya Pembeda (D)", "Kriteria D", "Validitas (r)", "Kriteria r", "Keputusan"]
-                ];
-
-                let rowIndex = 7; 
-                this.analysisResult.items.forEach(i => {
-                    data.push([
-                        i.no, parseFloat(i.p.toFixed(2)), i.pCat, parseFloat(i.d.toFixed(2)), i.dCat, parseFloat(i.r.toFixed(2)), i.rCat, i.rec
-                    ]);
-                    rowIndex++;
-                });
-
-                data.push([], []);
-                data.push(["", "Mengetahui,", "", "", "", "", textTempat, ""]);
-                data.push(["", "Kepala Sekolah,", "", "", "", "", "Guru Mata Pelajaran,", ""]);
-                data.push([], [], []);
-                data.push(["", namaKepsek, "", "", "", "", namaGuru, ""]);
-                data.push(["", nipKepsek, "", "", "", "", nipGuru, ""]);
-
-                const ws = XLSX.utils.aoa_to_sheet(data);
-
-                ws['!cols'] = [
-                    {wch: 5}, {wch: 18}, {wch: 13}, {wch: 18}, {wch: 13}, {wch: 15}, {wch: 13}, {wch: 18}
-                ];
-                ws['!merges'] = [
-                    { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } },
-                    { s: { r: 5, c: 1 }, e: { r: 5, c: 4 } },
-                ];
-
-                const tableStartRow = 7;
-                const tableEndRow = tableStartRow + this.analysisResult.K;
-
-                for (let i in ws) {
-                    if (i[0] === '!') continue;
-                    let col = i.replace(/[0-9]/g, '');
-                    let row = parseInt(i.replace(/\D/g, '')) - 1;
-
-                    ws[i].s = { font: { name: "Arial", sz: 11 }, alignment: { vertical: "center" } };
-
-                    if (row === 0) ws[i].s = { font: { name: "Arial", sz: 14, bold: true }, alignment: { horizontal: "center", vertical: "center" } };
-                    
-                    if (row >= 2 && row <= 5 && (col === 'A' || col === 'E')) ws[i].s.font = { name: "Arial", sz: 11, bold: true };
-
-                    if (row === tableStartRow) {
-                        ws[i].s = { 
-                            font: { name: "Arial", sz: 11, bold: true }, alignment: { horizontal: "center", vertical: "center" },
-                            fill: { fgColor: { rgb: "E2E8F0" } },
-                            border: { top: {style: "medium"}, bottom: {style: "medium"}, left: {style: "medium"}, right: {style: "medium"} }
-                        };
-                    }
-
-                    if (row > tableStartRow && row <= tableEndRow) {
-                        ws[i].s = {
-                            font: { name: "Arial", sz: 11 }, alignment: { horizontal: "center", vertical: "center" },
-                            border: { top: {style: "thin"}, bottom: {style: "thin"}, left: {style: "thin"}, right: {style: "thin"} }
-                        };
-                        if (col === 'H') ws[i].s.font = { bold: true };
-                    }
-
-                    if (row >= tableEndRow + 2) {
-                        if (col === 'B' || col === 'G') ws[i].s.alignment = { horizontal: "center", vertical: "center" };
-                        if (row === tableEndRow + 6 && (col === 'B' || col === 'G')) ws[i].s.font = { name: "Arial", sz: 11, bold: true, underline: true };
-                    }
-                }
-
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Laporan Analisis");
-                XLSX.writeFile(wb, `Laporan_Analisis_${id.mapel}_${id.kelas}.xlsx`);
-            },
-
-            // --- 2. CETAK / EXPORT DATA JAWABAN SISWA ---
 
             printJawaban() {
-                this.saveJawaban(); // Pastikan tersimpan dulu yang di layar
-                
-                // Render Table Head
                 const thead = document.getElementById('print-jawaban-thead');
-                let thHtml = `<th class="border border-black p-2 text-center w-10">No</th>
-                              <th class="border border-black p-2 w-48">Nama Siswa</th>`;
-                for(let i=1; i<=this.state.config.jmlSoal; i++) {
-                    thHtml += `<th class="border border-black p-2 text-center w-8">${i}</th>`;
-                }
+                let thHtml = `<th class="border border-black p-2 text-center w-10">No</th><th class="border border-black p-2 w-48">Nama Siswa</th>`;
+                for(let i=1; i<=this.state.config.jmlSoal; i++) thHtml += `<th class="border border-black p-2 text-center w-8">${i}</th>`;
                 thead.innerHTML = thHtml;
-
-                // Render Table Body
                 const tbody = document.getElementById('print-jawaban-tbody');
                 let tbHtml = '';
                 this.state.jawabanSiswa.forEach((s, i) => {
-                    tbHtml += `<tr><td class="border border-black p-1 text-center">${i+1}</td>
-                                   <td class="border border-black p-1 whitespace-nowrap overflow-hidden text-ellipsis">${s.nama}</td>`;
-                    s.jawaban.forEach(ans => {
-                        tbHtml += `<td class="border border-black p-1 text-center text-xs uppercase">${ans}</td>`;
-                    });
+                    tbHtml += `<tr><td class="border border-black p-1 text-center">${i+1}</td><td class="border border-black p-1 whitespace-nowrap overflow-hidden text-ellipsis">${s.nama}</td>`;
+                    s.jawaban.forEach(ans => tbHtml += `<td class="border border-black p-1 text-center text-xs uppercase">${ans}</td>`);
                     tbHtml += `</tr>`;
                 });
                 tbody.innerHTML = tbHtml;
+                document.getElementById('print-template-jawaban').classList.add('active-print'); window.print();
+            },
 
-                document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
-                document.getElementById('print-template-jawaban').classList.add('active-print');
-                
-                window.print();
+            exportExcelLaporan() {
+                if(!this.analysisResult) return;
+                const id = this.state.identitas;
+                let data = [["LAPORAN ANALISIS"], [], ["Mapel", id.mapel, "", "Sekolah", id.sekolah], [], ["No", "P", "Kriteria P", "D", "Kriteria D", "r", "Kriteria r", "Keputusan"]];
+                this.analysisResult.items.forEach(i => data.push([i.no, i.p, i.pCat, i.d, i.dCat, i.r, i.rCat, i.rec]));
+                const ws = XLSX.utils.aoa_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Analisis");
+                XLSX.writeFile(wb, "Analisis_Soal.xlsx");
             },
 
             exportExcelJawaban() {
-                this.saveJawaban(); // Sinkronkan data di grid
-
                 const id = this.state.identitas;
-                const textTempat = id.tempatTanggal ? `${id.tempatTanggal}` : '......................., ..........................';
-                const namaKepsek = id.kepalaSekolah ? id.kepalaSekolah : '.........................................';
-                const nipKepsek = id.nipKepsek ? `NIP. ${id.nipKepsek}` : 'NIP. .........................';
-                const namaGuru = id.guru ? id.guru : '.........................................';
-                const nipGuru = id.nipGuru ? `NIP. ${id.nipGuru}` : 'NIP. .........................';
-
-                let data = [
-                    ["DATA REKAP JAWABAN SISWA"],
-                    [],
-                    ["Mata Pelajaran", ": " + id.mapel, "", "Tahun Pelajaran", ": " + id.tahun],
-                    ["Kelas / Semester", ": " + id.kelas + " / " + id.semester, "", "Jenis Tes", ": " + id.jenis],
-                    ["Nama Sekolah", ": " + id.sekolah, "", "Jml Siswa/Soal", ": " + this.state.config.jmlSiswa + " / " + this.state.config.jmlSoal],
-                    []
-                ];
-
-                // Table Header Row
-                let headerRow = ["No", "Nama Siswa"];
-                for(let i=1; i<=this.state.config.jmlSoal; i++) headerRow.push(i);
-                data.push(headerRow);
-
-                // Table Body Rows
-                let tableStartRow = 6;
-                let rowIndex = tableStartRow + 1;
-                
+                let header = ["No", "Nama Siswa"];
+                for(let i=1; i<=this.state.config.jmlSoal; i++) header.push(i);
+                let data = [["REKAP JAWABAN SISWA"], [], header];
                 this.state.jawabanSiswa.forEach((s, i) => {
-                    let studentRow = [i + 1, s.nama];
-                    s.jawaban.forEach(ans => studentRow.push(ans));
-                    data.push(studentRow);
-                    rowIndex++;
+                    let row = [i+1, s.nama];
+                    s.jawaban.forEach(a => row.push(a));
+                    data.push(row);
                 });
-
-                let tableEndRow = rowIndex - 1;
-
-                // TTD
-                data.push([], []);
-                data.push(["", "Mengetahui,", "", "", "", textTempat]);
-                data.push(["", "Kepala Sekolah,", "", "", "", "Guru Mata Pelajaran,"]);
-                data.push([], [], []);
-                data.push(["", namaKepsek, "", "", "", namaGuru]);
-                data.push(["", nipKepsek, "", "", "", nipGuru]);
-
                 const ws = XLSX.utils.aoa_to_sheet(data);
-
-                // Col widths
-                let cols = [{wch: 5}, {wch: 30}];
-                for(let i=1; i<=this.state.config.jmlSoal; i++) cols.push({wch: 5}); // soal cols
-                ws['!cols'] = cols;
-
-                // Merges
-                let lastColIndex = this.state.config.jmlSoal > 4 ? this.state.config.jmlSoal + 1 : 6;
-                ws['!merges'] = [
-                    { s: { r: 0, c: 0 }, e: { r: 0, c: lastColIndex } }, // Title merge
-                ];
-
-                // Apply Styles
-                for (let i in ws) {
-                    if (i[0] === '!') continue;
-                    let col = i.replace(/[0-9]/g, '');
-                    let colNum = XLSX.utils.decode_col(col); // 0-based col index
-                    let row = parseInt(i.replace(/\D/g, '')) - 1;
-
-                    ws[i].s = { font: { name: "Arial", sz: 11 }, alignment: { vertical: "center" } };
-
-                    if (row === 0) {
-                        ws[i].s = { font: { name: "Arial", sz: 14, bold: true }, alignment: { horizontal: "center", vertical: "center" } };
-                    }
-                    if (row >= 2 && row <= 4 && (col === 'A' || col === 'D')) {
-                        ws[i].s.font = { name: "Arial", sz: 11, bold: true };
-                    }
-
-                    // Table Header
-                    if (row === tableStartRow) {
-                        ws[i].s = { 
-                            font: { name: "Arial", sz: 11, bold: true }, alignment: { horizontal: "center", vertical: "center" },
-                            fill: { fgColor: { rgb: "E2E8F0" } },
-                            border: { top: {style: "medium"}, bottom: {style: "medium"}, left: {style: "medium"}, right: {style: "medium"} }
-                        };
-                    }
-
-                    // Table Body
-                    if (row > tableStartRow && row <= tableEndRow) {
-                        let align = colNum === 1 ? "left" : "center"; // Left align untuk Nama
-                        ws[i].s = {
-                            font: { name: "Arial", sz: 11 }, alignment: { horizontal: align, vertical: "center" },
-                            border: { top: {style: "thin"}, bottom: {style: "thin"}, left: {style: "thin"}, right: {style: "thin"} }
-                        };
-                    }
-
-                    // TTD Styles
-                    if (row >= tableEndRow + 2) {
-                        // Jika ada di kolom B atau kolom TTD sebelah kanan
-                        let rightTtdCol = 5; // Kolom F by default
-                        if(this.state.config.jmlSoal > 5) rightTtdCol = Math.min(this.state.config.jmlSoal - 2, 8); // Geser ke kanan sesuai jml soal
-
-                        if (colNum === 1 || colNum === rightTtdCol) {
-                            ws[i].s.alignment = { horizontal: "center", vertical: "center" };
-                        }
-                        if (row === tableEndRow + 6 && (colNum === 1 || colNum === rightTtdCol)) {
-                            ws[i].s.font = { name: "Arial", sz: 11, bold: true, underline: true };
-                        }
-                    }
-                }
-
                 const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Rekap Jawaban");
-                XLSX.writeFile(wb, `Data_Jawaban_${id.mapel}_${id.kelas}.xlsx`);
+                XLSX.utils.book_append_sheet(wb, ws, "Jawaban");
+                XLSX.writeFile(wb, "Data_Jawaban.xlsx");
             }
         };
 
-        // Initialize App on load
-        document.addEventListener('DOMContentLoaded', () => {
-            app.init();
-        });
-
+        document.addEventListener('DOMContentLoaded', () => app.init());
     </script>
 </body>
 </html>
