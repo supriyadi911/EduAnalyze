@@ -45,12 +45,34 @@
         .tab-content.active { display: block; }
         
         @media print {
+            @page { size: auto; margin: 15mm; }
+            html, body { 
+                height: auto !important; 
+                min-height: 100% !important;
+                overflow: visible !important; 
+                background: white !important; 
+                display: block !important; /* Mematikan flexbox pembatas halaman */
+            }
+            aside, header, #sidebar-overlay { display: none !important; }
+            main, #main-scroll { 
+                height: auto !important; 
+                overflow: visible !important; 
+                display: block !important; 
+            }
             .no-print { display: none !important; }
-            body { background: white; }
             .print-area { width: 100%; margin: 0; padding: 0; }
-            .page-break { page-break-before: always; }
+            
+            table { page-break-inside: auto; width: 100%; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
             thead { display: table-header-group; }
-            tr { page-break-inside: avoid; }
+            tfoot { display: table-footer-group; }
+            
+            /* Sembunyikan konten antarmuka normal saat cetak */
+            .tab-content { display: none !important; }
+            
+            /* Tampilkan khusus area cetak yang diaktifkan */
+            .print-section { display: none !important; }
+            .print-section.active-print { display: block !important; }
         }
         
         #toast {
@@ -530,10 +552,11 @@
                         </div>
                     </div>
                 </div>
+            </section>
 
-                <!-- Hidden Print Templates -->
-                <div id="print-template-analisis" class="print-section text-left mt-10 p-8 border rounded bg-white text-black print:border-none print:mt-0 print:p-0">
-                    <div class="text-center border-b-2 border-black pb-4 mb-6">
+            <!-- Hidden Print Templates -->
+            <div id="print-template-analisis" class="print-section text-left mt-10 p-8 border rounded bg-white text-black print:border-none print:mt-0 print:p-0">
+                <div class="text-center border-b-2 border-black pb-4 mb-6">
                         <h1 class="font-bold text-xl uppercase">LAPORAN HASIL ANALISIS BUTIR SOAL</h1>
                         <h2 class="font-bold text-lg print-sekolah">NAMA SEKOLAH</h2>
                         <p class="text-sm print-tahun">Tahun Pelajaran: - | Semester: -</p>
@@ -584,10 +607,10 @@
                     </div>
                 </div>
 
-                <!-- Template Print Daftar Nilai Siswa -->
-                <div id="print-template-nilai" class="print-section text-left mt-10 p-8 border rounded bg-white text-black print:border-none print:mt-0 print:p-0">
+                <!-- Template Print Jawaban Siswa -->
+                <div id="print-template-jawaban" class="print-section text-left mt-10 p-8 border rounded bg-white text-black print:border-none print:mt-0 print:p-0">
                     <div class="text-center border-b-2 border-black pb-4 mb-6">
-                        <h1 class="font-bold text-xl uppercase">DAFTAR NILAI SISWA</h1>
+                        <h1 class="font-bold text-xl uppercase">DATA JAWABAN SISWA</h1>
                         <h2 class="font-bold text-lg print-sekolah">NAMA SEKOLAH</h2>
                         <p class="text-sm print-tahun">Tahun Pelajaran: - | Semester: -</p>
                     </div>
@@ -607,19 +630,13 @@
                             </table>
                         </div>
                     </div>
-                    <table class="w-full text-xs text-left border-collapse border border-black mb-10">
-                        <thead>
-                            <tr class="bg-gray-100">
-                                <th class="border border-black p-2 text-center w-10">No</th>
-                                <th class="border border-black p-2">Nama Siswa</th>
-                                <th class="border border-black p-2 text-center">Skor PG</th>
-                                <th class="border border-black p-2 text-center">Skor Isian/Esai</th>
-                                <th class="border border-black p-2 text-center">Total Nilai</th>
-                                <th class="border border-black p-2 text-center">Keterangan</th>
-                            </tr>
-                        </thead>
-                        <tbody id="print-nilai-tbody"></tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left border-collapse border border-black mb-10">
+                            <thead id="print-jawaban-thead" class="bg-gray-100">
+                            </thead>
+                            <tbody id="print-jawaban-tbody"></tbody>
+                        </table>
+                    </div>
                     <div class="flex justify-between text-sm text-center mt-10" style="page-break-inside: avoid;">
                         <div class="w-1/2">
                             <p class="mb-16">Mengetahui,<br>Kepala Sekolah</p>
@@ -634,9 +651,8 @@
                         </div>
                     </div>
                 </div>
-            </section>
-        </div>
-    </main>
+            </div>
+        </main>
 
     <!-- Modal Donasi -->
     <div id="donasi-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
@@ -1227,7 +1243,12 @@
             printAnalisis() {
                 if(!this.analysisResult) { showToast("Analisis dulu!", true); return; }
                 document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
-                document.getElementById('print-template-analisis').classList.add('active-print'); window.print();
+                document.getElementById('print-template-analisis').classList.add('active-print'); 
+                
+                setTimeout(() => {
+                    window.print();
+                    document.getElementById('print-template-analisis').classList.remove('active-print');
+                }, 150);
             },
 
             printJawaban() {
@@ -1244,7 +1265,12 @@
                 });
                 tbody.innerHTML = tbHtml;
                 document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
-                document.getElementById('print-template-jawaban').classList.add('active-print'); window.print();
+                document.getElementById('print-template-jawaban').classList.add('active-print'); 
+                
+                setTimeout(() => {
+                    window.print();
+                    document.getElementById('print-template-jawaban').classList.remove('active-print');
+                }, 150);
             },
 
             exportExcelLaporan() {
@@ -1310,7 +1336,11 @@
                 tbody.innerHTML = tbHtml;
                 document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
                 document.getElementById('print-template-nilai').classList.add('active-print'); 
-                window.print();
+                
+                setTimeout(() => {
+                    window.print();
+                    document.getElementById('print-template-nilai').classList.remove('active-print');
+                }, 150);
             }
         };
 
