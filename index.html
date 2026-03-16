@@ -405,7 +405,11 @@
                             <h3 class="text-lg font-bold text-gray-800">Daftar Nilai Siswa</h3>
                             <p class="text-sm text-gray-500">Hasil perhitungan nilai akhir berdasarkan bobot soal.</p>
                         </div>
-                        <div class="flex flex-wrap gap-2">
+                        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                            <div class="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">
+                                <label for="in-kkm" class="text-sm font-bold text-blue-800" title="Kriteria Ketuntasan Minimal">KKM:</label>
+                                <input type="number" id="in-kkm" min="0" max="100" class="w-16 px-2 py-1 text-sm border border-blue-300 rounded focus:ring-2 focus:ring-primary outline-none font-bold text-center" value="75">
+                            </div>
                             <button onclick="app.exportExcelNilai()" class="px-3 py-2 bg-secondary hover:bg-emerald-600 text-white text-sm font-medium rounded-lg shadow-sm transition flex items-center">
                                 <i class="fas fa-file-excel mr-1.5"></i> Excel
                             </button>
@@ -754,7 +758,7 @@
                     mapel: '', kelas: '', guru: '',
                     tempatTanggal: '', kepalaSekolah: '', nipKepsek: '', nipGuru: ''
                 },
-                config: { jmlSiswa: 20, jmlSoal: 25 },
+                config: { jmlSiswa: 20, jmlSoal: 25, kkm: 75 },
                 kunci: [],
                 jawabanSiswa: [],
             },
@@ -855,6 +859,7 @@
                 if(id.nipGuru) document.getElementById('in-nip-guru').value = id.nipGuru;
                 document.getElementById('in-jmlsiswa').value = conf.jmlSiswa;
                 document.getElementById('in-jmlsoal').value = conf.jmlSoal;
+                if(conf.kkm) document.getElementById('in-kkm').value = conf.kkm;
             },
 
             saveIdentity() {
@@ -991,6 +996,9 @@
                 const keys = this.state.kunci;
                 const students = this.state.jawabanSiswa;
 
+                let kkmValue = parseFloat(document.getElementById('in-kkm').value) || 75;
+                this.state.config.kkm = kkmValue;
+
                 let maxScoreTotal = 0;
                 keys.forEach(k => maxScoreTotal += (k.tipe === 'PG' ? 1 : (parseFloat(k.jawaban) || 0)));
 
@@ -1030,7 +1038,7 @@
                         pg: pgScore, 
                         isian: isianScore, 
                         total: finalGrade,
-                        keterangan: finalGrade >= 75 ? 'Tuntas' : 'Belum Tuntas'
+                        keterangan: finalGrade >= kkmValue ? 'Tuntas' : 'Belum Tuntas'
                     });
                 });
 
