@@ -461,6 +461,9 @@
                                 <label for="excel-jawaban" class="cursor-pointer px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-sm transition flex items-center shadow-sm">
                                     <i class="fas fa-file-excel mr-2"></i> Import Jawaban
                                 </label>
+                                <label class="cursor-pointer px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-sm transition flex items-center shadow-sm">
+                                    <a href="https://docs.google.com/spreadsheets/d/1wELzXAPTermisi5hK_nSzwMKfymDC6u8/edit?usp=sharing&ouid=111924599964496139734&rtpof=true&sd=true">Template Jawaban</a>
+                                </label>
                                 <input type="file" id="excel-jawaban" accept=".xlsx, .xls" class="hidden" onchange="importExcelJawaban(event)">
                                 <button onclick="cetakLaporan('container-jawaban', 'Laporan_Jawaban_Siswa')" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm transition flex items-center shadow-sm">
                                     <i class="fas fa-file-pdf mr-2"></i> Cetak PDF
@@ -1624,7 +1627,7 @@
 
             const ctxValiditas = document.getElementById('chartValiditas').getContext('2d');
             charts.validitas = new Chart(ctxValiditas, {
-                type: 'pie',
+                type: 'bar',
                 data: {
                     labels: ['Valid', 'Cukup', 'Tidak Valid'],
                     datasets: [{
