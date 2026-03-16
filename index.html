@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduAnalisa - Sistem Analisis Soal Ujian</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- xlsx-js-style (Mendukung styling Excel seperti border, bold, alignment) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        primary: '#0ea5e9', // Sky blue
+                        secondary: '#10b981', // Emerald green
+                        dark: '#0f172a'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar & Print Styles */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            .print-area { width: 100%; margin: 0; padding: 0; }
+            .page-break { page-break-before: always; }
+            /* Memastikan header tabel berulang di setiap halaman saat print */
+            thead { display: table-header-group; }
+            tr { page-break-inside: avoid; }
+        }
+        
+        /* Toast Notification */
+        #toast {
+            visibility: hidden; min-width: 250px; background-color: #333; color: #fff;
+            text-align: center; border-radius: 8px; padding: 16px; position: fixed;
+            z-index: 50; right: 30px; bottom: 30px; font-size: 14px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transform: translateY(100px); transition: all 0.3s ease;
+        }
+        #toast.show { visibility: visible; transform: translateY(0); }
+
+        /* Print Sections */
+        .print-section { display: none; }
+        @media print {
+            .print-section.active-print { display: block !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="bg-dark text-white w-64 flex-shrink-0 flex flex-col transition-all duration-300 transform -translate-x-full md:translate-x-0 absolute md:relative z-40 h-full">
+        <div class="p-5 flex items-center justify-between border-b border-gray-700 flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="bg-primary text-white p-2 rounded-lg"><i class="fas fa-chart-line"></i></div>
+                <h1 class="font-bold text-xl tracking-wide">EduAnalisa</h1>
+            </div>
+            <button class="md:hidden text-gray-400 hover:text-white" onclick="toggleSidebar()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="p-4 flex-1 overflow-y-auto">
+            <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-4">Menu Utama</p>
+            <nav class="space-y-2">
+                <button onclick="switchTab('dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors bg-primary/20 text-primary border-r-4 border-primary" data-target="dashboard">
+                    <i class="fas fa-home w-5"></i> Dashboard
+                </button>
+                <button onclick="switchTab('input-data')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-colors" data-target="input-data">
+                    <i class="fas fa-school w-5"></i> Identitas Ujian
+                </button>
+                <button onclick="switchTab('input-kunci')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-colors" data-target="input-kunci">
+                    <i class="fas fa-key w-5"></i> Kunci Jawaban
+                </button>
+                <button onclick="switchTab('input-jawaban')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-colors" data-target="input-jawaban">
+                    <i class="fas fa-users w-5"></i> Jawaban Siswa
+                </button>
+                <button onclick="switchTab('analisis')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-colors" data-target="analisis">
+                    <i class="fas fa-microscope w-5"></i> Hasil Analisis
+                </button>
+                <button onclick="switchTab('export')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-colors" data-target="export">
+                    <i class="fas fa-file-export w-5"></i> Cetak Laporan
+                </button>
+            </nav>
+        </div>
+
+        <!-- Footer / Credits Section -->
+        <div class="p-4 border-t border-gray-800 text-center flex-shrink-0 no-print">
+            <p class="text-[11px] text-gray-400 mb-3 leading-relaxed">
+                Created by : Supriyadi, S. Pd. Gr - SDN 1 Durian Payung
+            </p>
+            <a href="https://wa.me/6282371962881?text=Hai...saya%20tertarik%20dengan%20aplikasi%20yang%20bapak%20buat" 
+               target="_blank" 
+               class="inline-flex items-center justify-center gap-2 w-full py-2 bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366] hover:text-white border border-[#25D366]/30 rounded-lg text-xs font-semibold transition-all duration-300">
+                <i class="fab fa-whatsapp text-sm"></i> Whatsapp Me
+            </a>
+            <button onclick="toggleDonasiModal()" 
+               class="mt-2 inline-flex items-center justify-center gap-2 w-full py-2 bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500 hover:text-white border border-yellow-500/30 rounded-lg text-xs font-semibold transition-all duration-300">
+                <i class="fas fa-hand-holding-heart text-sm"></i> Dukung / Donasi
+            </button>
+        </div>
+    </aside>
+
+    <!-- Overlay for mobile sidebar -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden" onclick="toggleSidebar()"></div>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        <!-- Header -->
+        <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 sm:px-6 flex-shrink-0 no-print">
+            <div class="flex items-center gap-4">
+                <button class="md:hidden text-gray-600 hover:text-primary" onclick="toggleSidebar()">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h2 id="page-title" class="font-semibold text-gray-800 text-lg">Dashboard Analisis</h2>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="app.resetAllData()" class="text-sm text-red-500 hover:text-red-700 font-medium px-3 py-1 rounded bg-red-50 hover:bg-red-100 transition">
+                    <i class="fas fa-trash-alt mr-1"></i> Reset Data
+                </button>
+            </div>
+        </header>
+
+        <!-- Content Area -->
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 print-area" id="main-scroll">
+            
+            <!-- ================= DASHBOARD ================= -->
+            <section id="dashboard" class="tab-content active max-w-7xl mx-auto">
+                
+                <!-- Banner Welcome / EduAnalisa Info -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8 mb-8 bg-gradient-to-r from-blue-50 to-white relative overflow-hidden">
+                    <div class="relative z-10">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Selamat Datang di <span class="text-primary">EduAnalisa</span> <i class="fas fa-hand-sparkles text-yellow-500 ml-1"></i></h2>
+                        <p class="text-gray-600 mb-5 max-w-3xl leading-relaxed">Sistem Analisis Butir Soal Ujian berbasis web yang dirancang khusus untuk memudahkan guru dalam menganalisis soal Pilihan Ganda, Isian, dan Esai secara otomatis, cepat, dan akurat sesuai dengan kaidah evaluasi pendidikan.</p>
+                        <div class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-xs sm:text-sm font-medium text-gray-600 shadow-sm">
+                            <i class="fas fa-laptop-code text-primary"></i>
+                            <span>Dikembangkan oleh: <strong class="text-gray-800">Supriyadi, S. Pd. Gr</strong> <span class="hidden sm:inline">(SDN 1 Durian Payung)</span></span>
+                        </div>
+                    </div>
+                    <!-- Background Decoration -->
+                    <i class="fas fa-chart-pie absolute -right-6 -bottom-10 text-9xl text-blue-500/10 transform rotate-12 z-0 pointer-events-none"></i>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- Cards -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Jumlah Siswa</p>
+                            <h3 class="text-2xl font-bold text-gray-800" id="dash-siswa">0</h3>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xl">
+                            <i class="fas fa-list-ol"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Jumlah Soal</p>
+                            <h3 class="text-2xl font-bold text-gray-800" id="dash-soal">0</h3>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xl">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Soal Valid</p>
+                            <h3 class="text-2xl font-bold text-gray-800" id="dash-valid">0</h3>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xl">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Reliabilitas Tes</p>
+                            <h3 class="text-2xl font-bold text-gray-800" id="dash-reliabilitas">-</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h3 class="font-semibold text-gray-800 mb-4">Status Identitas Ujian</h3>
+                        <table class="w-full text-sm text-left text-gray-600">
+                            <tbody>
+                                <tr class="border-b"><th class="py-2 font-medium text-gray-800 w-1/3">Sekolah</th><td id="info-sekolah">-</td></tr>
+                                <tr class="border-b"><th class="py-2 font-medium text-gray-800">Mata Pelajaran</th><td id="info-mapel">-</td></tr>
+                                <tr class="border-b"><th class="py-2 font-medium text-gray-800">Kelas / Semester</th><td id="info-kelas">-</td></tr>
+                                <tr><th class="py-2 font-medium text-gray-800">Guru Pengampu</th><td id="info-guru">-</td></tr>
+                            </tbody>
+                        </table>
+                        <button onclick="switchTab('input-data')" class="mt-4 w-full py-2 bg-gray-50 hover:bg-gray-100 text-primary font-medium rounded-lg border border-gray-200 transition">Update Identitas</button>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-center items-center text-center">
+                        <div class="w-20 h-20 bg-green-50 text-secondary rounded-full flex items-center justify-center text-3xl mb-4">
+                            <i class="fas fa-laptop-code"></i>
+                        </div>
+                        <h3 class="font-semibold text-gray-800 text-lg mb-2">Siap Melakukan Analisis</h3>
+                        <p class="text-sm text-gray-500 mb-6">Lengkapi data ujian, kunci jawaban, dan jawaban siswa untuk melihat hasil analisis butir soal secara otomatis.</p>
+                        <button onclick="app.processAnalysis()" class="px-6 py-2.5 bg-primary hover:bg-sky-600 text-white font-medium rounded-lg shadow-sm transition">
+                            <i class="fas fa-play mr-2"></i> Proses Analisis Sekarang
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= INPUT DATA SEKOLAH ================= -->
+            <section id="input-data" class="tab-content max-w-4xl mx-auto">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
+                    
+                    <form id="form-identitas" onsubmit="event.preventDefault(); app.saveIdentity();">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Identitas Ujian & Sekolah</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            <!-- Kolom 1 -->
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Sekolah</label>
+                                    <input type="text" id="in-sekolah" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition" placeholder="Contoh: SD Negeri 1 Jakarta" required>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Jenjang</label>
+                                        <select id="in-jenjang" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none bg-white">
+                                            <option value="SD">SD/MI</option>
+                                            <option value="SMP">SMP/MTs</option>
+                                            <option value="SMA">SMA/SMK/MA</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Tes</label>
+                                        <select id="in-jenis" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none bg-white">
+                                            <option value="STS">STS (Tengah Semester)</option>
+                                            <option value="SAS">SAS (Akhir Semester)</option>
+                                            <option value="TO">Try Out</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Tahun Pelajaran</label>
+                                        <input type="text" id="in-tahun" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" placeholder="2025/2026" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Semester</label>
+                                        <select id="in-semester" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none bg-white">
+                                            <option value="Ganjil">Ganjil</option>
+                                            <option value="Genap">Genap</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Kolom 2 -->
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Mata Pelajaran</label>
+                                    <input type="text" id="in-mapel" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" placeholder="Contoh: Matematika" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Kelas</label>
+                                    <input type="text" id="in-kelas" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" placeholder="Contoh: VI A" required>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 bg-blue-50 p-4 rounded-lg border border-blue-100 mt-2">
+                                    <div>
+                                        <label class="block text-sm font-bold text-blue-800 mb-1">Jml. Siswa (N)</label>
+                                        <input type="number" id="in-jmlsiswa" min="5" max="100" class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-primary outline-none font-bold" value="20" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-bold text-blue-800 mb-1">Jml. Soal (K)</label>
+                                        <input type="number" id="in-jmlsoal" min="5" max="100" class="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-primary outline-none font-bold" value="25" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Pengesahan Laporan -->
+                        <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Data Pengesahan Laporan <span class="text-sm font-normal text-gray-500">(Digunakan untuk TTD di Excel/PDF)</span></h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Tempat, Tanggal Pembuatan Laporan</label>
+                                    <input type="text" id="in-tempat-tanggal" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" placeholder="Contoh: Jakarta, 15 Desember 2026">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Kepala Sekolah</label>
+                                    <input type="text" id="in-kepsek" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" placeholder="Nama Kepala Sekolah beserta Gelar">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">NIP Kepala Sekolah</label>
+                                    <input type="text" id="in-nip-kepsek" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" placeholder="NIP. 1980... (Kosongkan jika tidak ada)">
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Nama Guru / Wali Kelas</label>
+                                    <input type="text" id="in-guru" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" placeholder="Nama Guru beserta Gelar" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">NIP Guru</label>
+                                    <input type="text" id="in-nip-guru" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" placeholder="NIP. 1990... (Kosongkan jika tidak ada)">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 flex justify-end gap-3">
+                            <button type="submit" class="px-6 py-2.5 bg-primary hover:bg-sky-600 text-white font-medium rounded-lg shadow-sm transition flex items-center">
+                                <i class="fas fa-save mr-2"></i> Simpan Identitas
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- ================= INPUT KUNCI JAWABAN ================= -->
+            <section id="input-kunci" class="tab-content max-w-5xl mx-auto">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">Master Kunci Jawaban</h3>
+                            <p class="text-sm text-gray-500">Masukkan kunci jawaban untuk <span id="lbl-jml-soal" class="font-bold text-primary">0</span> butir soal.</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="app.downloadTemplateKunci()" class="px-4 py-2 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-sm font-medium border border-green-200 transition">
+                                <i class="fas fa-file-excel mr-1"></i> Template
+                            </button>
+                            <label class="px-4 py-2 bg-secondary hover:bg-emerald-600 text-white rounded-lg text-sm font-medium shadow-sm transition cursor-pointer">
+                                <i class="fas fa-upload mr-1"></i> Import Excel
+                                <input type="file" id="file-kunci" accept=".xlsx, .xls" class="hidden" onchange="app.importKunci(event)">
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="p-0 overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+                                <tr>
+                                    <th class="px-6 py-3 w-16 text-center">No</th>
+                                    <th class="px-6 py-3 w-48">Jenis Soal</th>
+                                    <th class="px-6 py-3">Kunci Jawaban / Bobot Maks</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-kunci-body">
+                                <!-- Generated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="p-4 bg-gray-50 border-t flex justify-end">
+                        <button onclick="app.saveKunci()" class="px-6 py-2 bg-primary hover:bg-sky-600 text-white font-medium rounded-lg shadow-sm transition">
+                            <i class="fas fa-save mr-2"></i> Simpan Kunci
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= INPUT JAWABAN SISWA ================= -->
+            <section id="input-jawaban" class="tab-content max-w-full mx-auto">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-[calc(100vh-140px)]">
+                    <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-shrink-0">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">Entri Jawaban Siswa</h3>
+                            <p class="text-sm text-gray-500">Data <span id="lbl-jml-siswa" class="font-bold text-primary">0</span> Siswa. (Untuk PG masukkan huruf A/B/C/D, untuk Isian/Esai masukkan skor angka).</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="app.downloadTemplateJawaban()" class="px-4 py-2 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-sm font-medium border border-green-200 transition">
+                                <i class="fas fa-file-excel mr-1"></i> Template
+                            </button>
+                            <label class="px-4 py-2 bg-secondary hover:bg-emerald-600 text-white rounded-lg text-sm font-medium shadow-sm transition cursor-pointer">
+                                <i class="fas fa-upload mr-1"></i> Import Excel
+                                <input type="file" id="file-jawaban" accept=".xlsx, .xls" class="hidden" onchange="app.importJawaban(event)">
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 overflow-auto p-0 relative">
+                        <table class="w-full text-sm text-left whitespace-nowrap">
+                            <thead class="text-xs text-gray-700 bg-gray-50 border-b sticky top-0 z-10 shadow-sm">
+                                <tr id="table-jawaban-header">
+                                    <!-- Generated by JS -->
+                                </tr>
+                            </thead>
+                            <tbody id="table-jawaban-body">
+                                <!-- Generated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="p-4 bg-gray-50 border-t flex justify-end flex-shrink-0">
+                        <button onclick="app.saveJawaban()" class="px-6 py-2 bg-primary hover:bg-sky-600 text-white font-medium rounded-lg shadow-sm transition">
+                            <i class="fas fa-save mr-2"></i> Simpan Jawaban
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= ANALISIS ================= -->
+            <section id="analisis" class="tab-content max-w-full mx-auto">
+                <div class="flex space-x-1 bg-gray-200/50 p-1 rounded-lg w-fit mb-6 no-print">
+                    <button onclick="switchSubTab('analisis-tabel')" id="tab-btn-tabel" class="px-4 py-2 text-sm font-medium rounded-md bg-white text-gray-800 shadow-sm">Tabel Analisis</button>
+                    <button onclick="switchSubTab('analisis-grafik')" id="tab-btn-grafik" class="px-4 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-800">Grafik & Statistik</button>
+                </div>
+
+                <div id="analisis-tabel" class="sub-tab-content block">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                        <div class="p-4 bg-gray-50 border-b flex justify-between items-center no-print">
+                            <h3 class="font-bold text-gray-800">Rekapitulasi Analisis Butir Soal</h3>
+                            <button onclick="app.processAnalysis()" class="px-3 py-1.5 bg-primary text-white text-sm rounded hover:bg-sky-600"><i class="fas fa-sync-alt mr-1"></i> Refresh Analisis</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-100 border-b">
+                                    <tr>
+                                        <th class="px-4 py-3 text-center border-r">No</th>
+                                        <th class="px-4 py-3 border-r">Tingkat Kesukaran (P)</th>
+                                        <th class="px-4 py-3 border-r">Daya Pembeda (D)</th>
+                                        <th class="px-4 py-3 border-r">Validitas (r)</th>
+                                        <th class="px-4 py-3 text-center">Rekomendasi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-analisis-body">
+                                    <tr><td colspan="5" class="px-4 py-8 text-center text-gray-500">Silakan proses analisis terlebih dahulu.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="analisis-grafik" class="sub-tab-content hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <h3 class="text-sm font-bold text-gray-800 mb-4 text-center">Distribusi Tingkat Kesukaran</h3>
+                            <div class="relative h-64">
+                                <canvas id="chartKesukaran"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <h3 class="text-sm font-bold text-gray-800 mb-4 text-center">Proporsi Rekomendasi Soal</h3>
+                            <div class="relative h-64 flex justify-center">
+                                <canvas id="chartRekomendasi"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= EXPORT & LAPORAN ================= -->
+            <section id="export" class="tab-content max-w-5xl mx-auto">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 no-print">
+                    
+                    <!-- Card Laporan Analisis -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center flex flex-col justify-between">
+                        <div>
+                            <div class="w-16 h-16 bg-blue-50 text-primary rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+                                <i class="fas fa-file-invoice"></i>
+                            </div>
+                            <h2 class="text-xl font-bold text-gray-800 mb-2">Laporan Analisis Soal</h2>
+                            <p class="text-sm text-gray-500 mb-6 px-4">Berisi statistik rekapitulasi, tabel analisis (Validitas, Daya Pembeda, Kesukaran), dan form TTD.</p>
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <button onclick="app.exportExcelLaporan()" class="w-full py-2.5 bg-secondary hover:bg-emerald-600 text-white font-medium rounded-lg shadow-sm transition flex items-center justify-center">
+                                <i class="fas fa-file-excel mr-2"></i> Export Excel Analisis
+                            </button>
+                            <button onclick="app.printAnalisis()" class="w-full py-2.5 bg-primary hover:bg-sky-600 text-white font-medium rounded-lg shadow-sm transition flex items-center justify-center">
+                                <i class="fas fa-file-pdf mr-2"></i> Cetak / PDF Analisis
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Card Jawaban Siswa -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center flex flex-col justify-between">
+                        <div>
+                            <div class="w-16 h-16 bg-green-50 text-secondary rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+                                <i class="fas fa-list-check"></i>
+                            </div>
+                            <h2 class="text-xl font-bold text-gray-800 mb-2">Data Jawaban Siswa</h2>
+                            <p class="text-sm text-gray-500 mb-6 px-4">Berisi rekap tabel jawaban siswa per butir soal yang telah diinput beserta kolom pengesahan.</p>
+                        </div>
+                        <div class="flex flex-col gap-3">
+                            <button onclick="app.exportExcelJawaban()" class="w-full py-2.5 bg-secondary hover:bg-emerald-600 text-white font-medium rounded-lg shadow-sm transition flex items-center justify-center">
+                                <i class="fas fa-file-excel mr-2"></i> Export Excel Jawaban
+                            </button>
+                            <button onclick="app.printJawaban()" class="w-full py-2.5 bg-primary hover:bg-sky-600 text-white font-medium rounded-lg shadow-sm transition flex items-center justify-center">
+                                <i class="fas fa-file-pdf mr-2"></i> Cetak / PDF Jawaban
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ================= HIDDEN PRINT TEMPLATES ================= -->
+
+                <!-- 1. Print Template: Analisis -->
+                <div id="print-template-analisis" class="print-section text-left mt-10 p-8 border rounded bg-white text-black print:border-none print:mt-0 print:p-0">
+                    <div class="text-center border-b-2 border-black pb-4 mb-6">
+                        <h1 class="font-bold text-xl uppercase">LAPORAN HASIL ANALISIS BUTIR SOAL</h1>
+                        <h2 class="font-bold text-lg print-sekolah">NAMA SEKOLAH</h2>
+                        <p class="text-sm print-tahun">Tahun Pelajaran: - | Semester: -</p>
+                    </div>
+                    
+                    <div class="flex justify-between text-sm mb-6">
+                        <div>
+                            <table class="mb-2">
+                                <tr><td class="w-32">Mata Pelajaran</td><td>: <span class="print-mapel">-</span></td></tr>
+                                <tr><td>Kelas</td><td>: <span class="print-kelas">-</span></td></tr>
+                                <tr><td>Jenis Tes</td><td>: <span class="print-jenis">-</span></td></tr>
+                            </table>
+                        </div>
+                        <div>
+                            <table>
+                                <tr><td class="w-32">Guru Pengampu</td><td>: <span class="print-guru">-</span></td></tr>
+                                <tr><td>Jumlah Siswa</td><td>: <span class="print-jmlsiswa">-</span></td></tr>
+                                <tr><td>Jumlah Soal</td><td>: <span class="print-jmlsoal">-</span></td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 p-3 border border-gray-300 bg-gray-50">
+                        <p class="text-sm">Nilai Reliabilitas Tes (KR-20 / Alpha) : <span id="print-reliabilitas" class="font-bold">-</span> <span id="print-reliabilitas-ket" class="italic">(-)</span></p>
+                    </div>
+
+                    <table class="w-full text-xs text-left border-collapse border border-black mb-10">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="border border-black p-2 text-center w-10">No</th>
+                                <th class="border border-black p-2 text-center">Tk. Kesukaran (P)</th>
+                                <th class="border border-black p-2 text-center">Daya Pembeda (D)</th>
+                                <th class="border border-black p-2 text-center">Validitas (r)</th>
+                                <th class="border border-black p-2 text-center">Keputusan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="print-table-body">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                    
+                    <!-- Bagian Pengesahan (Print Analisis) -->
+                    <div class="flex justify-between text-sm text-center mt-10" style="page-break-inside: avoid;">
+                        <div class="w-1/2">
+                            <p class="mb-16">Mengetahui,<br>Kepala Sekolah</p>
+                            <p class="font-bold underline print-ttd-kepsek">..................................</p>
+                            <p class="print-nip-kepsek">NIP. .........................</p>
+                        </div>
+                        <div class="w-1/2">
+                            <p class="mb-16 print-tempat-tanggal">......................., ..........................</p>
+                            <p class="mb-0">Guru Mata Pelajaran</p>
+                            <p class="font-bold underline print-ttd-guru">..................................</p>
+                            <p class="print-nip-guru">NIP. .........................</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Print Template: Jawaban Siswa -->
+                <div id="print-template-jawaban" class="print-section text-left mt-10 p-8 border rounded bg-white text-black print:border-none print:mt-0 print:p-0">
+                    <div class="text-center border-b-2 border-black pb-4 mb-6">
+                        <h1 class="font-bold text-xl uppercase">DATA REKAP JAWABAN SISWA</h1>
+                        <h2 class="font-bold text-lg print-sekolah">NAMA SEKOLAH</h2>
+                        <p class="text-sm print-tahun">Tahun Pelajaran: - | Semester: -</p>
+                    </div>
+                    
+                    <div class="flex justify-between text-sm mb-6">
+                        <div>
+                            <table class="mb-2">
+                                <tr><td class="w-32">Mata Pelajaran</td><td>: <span class="print-mapel">-</span></td></tr>
+                                <tr><td>Kelas</td><td>: <span class="print-kelas">-</span></td></tr>
+                                <tr><td>Jenis Tes</td><td>: <span class="print-jenis">-</span></td></tr>
+                            </table>
+                        </div>
+                        <div>
+                            <table>
+                                <tr><td class="w-32">Guru Pengampu</td><td>: <span class="print-guru">-</span></td></tr>
+                                <tr><td>Jumlah Siswa</td><td>: <span class="print-jmlsiswa">-</span></td></tr>
+                                <tr><td>Jumlah Soal</td><td>: <span class="print-jmlsoal">-</span></td></tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left border-collapse border border-black mb-10">
+                            <thead>
+                                <tr class="bg-gray-100" id="print-jawaban-thead">
+                                    <!-- Injected by JS (No, Nama, 1, 2, 3...) -->
+                                </tr>
+                            </thead>
+                            <tbody id="print-jawaban-tbody">
+                                <!-- Injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Bagian Pengesahan (Print Jawaban) -->
+                    <div class="flex justify-between text-sm text-center mt-10" style="page-break-inside: avoid;">
+                        <div class="w-1/2">
+                            <p class="mb-16">Mengetahui,<br>Kepala Sekolah</p>
+                            <p class="font-bold underline print-ttd-kepsek">..................................</p>
+                            <p class="print-nip-kepsek">NIP. .........................</p>
+                        </div>
+                        <div class="w-1/2">
+                            <p class="mb-16 print-tempat-tanggal">......................., ..........................</p>
+                            <p class="mb-0">Guru Mata Pelajaran</p>
+                            <p class="font-bold underline print-ttd-guru">..................................</p>
+                            <p class="print-nip-guru">NIP. .........................</p>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Donasi Modal -->
+    <div id="donasi-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 transition-opacity duration-300 opacity-0">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform duration-300" id="donasi-content">
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 bg-yellow-100 text-yellow-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+                    <i class="fas fa-hand-holding-heart"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Dukung EduAnalisa</h3>
+                <p class="text-sm text-gray-600 mb-6">Jika aplikasi ini bermanfaat, Anda dapat mendukung pengembangan lebih lanjut melalui donasi sukarela.</p>
+                
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-100 mb-6 text-left relative">
+                    <p class="text-xs text-gray-500 mb-1">Bank Tujuan</p>
+                    <p class="font-bold text-gray-800 mb-3 text-lg">Bank BRI</p>
+                    
+                    <p class="text-xs text-gray-500 mb-1">Nomor Rekening</p>
+                    <div class="flex justify-between items-center mb-3">
+                        <p class="font-mono font-bold text-primary text-xl" id="rek-number">009801023322533</p>
+                        <button onclick="copyRekening()" class="w-8 h-8 flex items-center justify-center rounded-md bg-white border border-gray-200 text-gray-500 hover:text-primary hover:border-primary transition shadow-sm" title="Salin Rekening">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    
+                    <p class="text-xs text-gray-500 mb-1">Atas Nama</p>
+                    <p class="font-bold text-gray-800">SUPRIYADI</p>
+                </div>
+                
+                <button onclick="toggleDonasiModal()" class="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-lg transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Component -->
+    <div id="toast">Notifikasi</div>
+
+    <!-- Application Logic -->
+    <script>
+        // --- UI Interactions ---
+        function toggleDonasiModal() {
+            const modal = document.getElementById('donasi-modal');
+            const content = document.getElementById('donasi-content');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    content.classList.remove('scale-95');
+                }, 10);
+            } else {
+                modal.classList.add('opacity-0');
+                content.classList.add('scale-95');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        function copyRekening() {
+            const rek = "009801023322533";
+            // Menggunakan execCommand agar kompatibel dan aman di dalam iFrame
+            const el = document.createElement('textarea');
+            el.value = rek;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            showToast("Nomor Rekening berhasil disalin!");
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if(btn.dataset.target === tabId) {
+                    btn.classList.add('bg-primary/20', 'text-primary', 'border-r-4', 'border-primary');
+                    btn.classList.remove('text-gray-400', 'hover:bg-gray-800', 'hover:text-white');
+                } else {
+                    btn.classList.remove('bg-primary/20', 'text-primary', 'border-r-4', 'border-primary');
+                    btn.classList.add('text-gray-400', 'hover:bg-gray-800', 'hover:text-white');
+                }
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+            
+            // Sembunyikan semua print template jika sedang pindah tab biasa
+            document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
+            
+            const titles = {
+                'dashboard': 'Dashboard Analisis',
+                'input-data': 'Identitas Ujian',
+                'input-kunci': 'Master Kunci Jawaban',
+                'input-jawaban': 'Entri Jawaban Siswa',
+                'analisis': 'Hasil Analisis Butir Soal',
+                'export': 'Cetak Laporan'
+            };
+            document.getElementById('page-title').innerText = titles[tabId];
+            
+            if(window.innerWidth < 768) toggleSidebar();
+            
+            if(tabId === 'dashboard') app.updateDashboard();
+            if(tabId === 'input-kunci') app.renderKunciTable();
+            if(tabId === 'input-jawaban') app.renderJawabanTable();
+            if(tabId === 'analisis' && app.analysisResult) app.renderAnalisis();
+        }
+
+        function switchSubTab(tabId) {
+            document.querySelectorAll('.sub-tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            const btnTabel = document.getElementById('tab-btn-tabel');
+            const btnGrafik = document.getElementById('tab-btn-grafik');
+            
+            if(tabId === 'analisis-tabel') {
+                btnTabel.className = "px-4 py-2 text-sm font-medium rounded-md bg-white text-gray-800 shadow-sm";
+                btnGrafik.className = "px-4 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-800";
+            } else {
+                btnGrafik.className = "px-4 py-2 text-sm font-medium rounded-md bg-white text-gray-800 shadow-sm";
+                btnTabel.className = "px-4 py-2 text-sm font-medium rounded-md text-gray-600 hover:text-gray-800";
+                setTimeout(() => app.renderCharts(), 50);
+            }
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.style.backgroundColor = isError ? '#ef4444' : '#10b981';
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // --- Core Application Logic ---
+        const app = {
+            state: {
+                identitas: { 
+                    sekolah: '', jenjang: 'SD', tahun: '', semester: 'Ganjil', jenis: 'STS', 
+                    mapel: '', kelas: '', guru: '',
+                    tempatTanggal: '', kepalaSekolah: '', nipKepsek: '', nipGuru: ''
+                },
+                config: { jmlSiswa: 20, jmlSoal: 25 },
+                kunci: [],
+                jawabanSiswa: [],
+            },
+            analysisResult: null,
+            charts: {},
+
+            init() {
+                this.loadData();
+                this.fillFormIdentitas();
+                this.updateDashboard();
+            },
+
+            loadData() {
+                const saved = localStorage.getItem('eduAnalisaData');
+                if (saved) {
+                    this.state = JSON.parse(saved);
+                    if(!this.state.identitas.tempatTanggal) this.state.identitas.tempatTanggal = '';
+                    if(!this.state.identitas.kepalaSekolah) this.state.identitas.kepalaSekolah = '';
+                    if(!this.state.identitas.nipKepsek) this.state.identitas.nipKepsek = '';
+                    if(!this.state.identitas.nipGuru) this.state.identitas.nipGuru = '';
+                } else {
+                    this.generateEmptyGrids();
+                }
+            },
+
+            saveData() {
+                localStorage.setItem('eduAnalisaData', JSON.stringify(this.state));
+            },
+            
+            resetAllData() {
+                if(confirm("Apakah Anda yakin ingin menghapus semua data? Tindakan ini tidak dapat dibatalkan.")) {
+                    localStorage.removeItem('eduAnalisaData');
+                    location.reload();
+                }
+            },
+
+            generateEmptyGrids() {
+                if(this.state.kunci.length !== this.state.config.jmlSoal) {
+                    this.state.kunci = Array.from({length: this.state.config.jmlSoal}, (_, i) => ({
+                        no: i + 1, tipe: 'PG', jawaban: ''
+                    }));
+                }
+                if(this.state.jawabanSiswa.length !== this.state.config.jmlSiswa || 
+                   (this.state.jawabanSiswa[0] && this.state.jawabanSiswa[0].jawaban.length !== this.state.config.jmlSoal)) {
+                    this.state.jawabanSiswa = Array.from({length: this.state.config.jmlSiswa}, (_, i) => ({
+                        nama: `Siswa ${i + 1}`,
+                        jawaban: Array(this.state.config.jmlSoal).fill('')
+                    }));
+                }
+            },
+
+            fillFormIdentitas() {
+                const id = this.state.identitas;
+                const conf = this.state.config;
+                if(id.sekolah) document.getElementById('in-sekolah').value = id.sekolah;
+                document.getElementById('in-jenjang').value = id.jenjang;
+                if(id.tahun) document.getElementById('in-tahun').value = id.tahun;
+                document.getElementById('in-semester').value = id.semester;
+                document.getElementById('in-jenis').value = id.jenis;
+                if(id.mapel) document.getElementById('in-mapel').value = id.mapel;
+                if(id.kelas) document.getElementById('in-kelas').value = id.kelas;
+                if(id.guru) document.getElementById('in-guru').value = id.guru;
+                
+                if(id.tempatTanggal) document.getElementById('in-tempat-tanggal').value = id.tempatTanggal;
+                if(id.kepalaSekolah) document.getElementById('in-kepsek').value = id.kepalaSekolah;
+                if(id.nipKepsek) document.getElementById('in-nip-kepsek').value = id.nipKepsek;
+                if(id.nipGuru) document.getElementById('in-nip-guru').value = id.nipGuru;
+
+                document.getElementById('in-jmlsiswa').value = conf.jmlSiswa;
+                document.getElementById('in-jmlsoal').value = conf.jmlSoal;
+            },
+
+            saveIdentity() {
+                const oldSiswa = this.state.config.jmlSiswa;
+                const oldSoal = this.state.config.jmlSoal;
+                
+                this.state.identitas = {
+                    sekolah: document.getElementById('in-sekolah').value,
+                    jenjang: document.getElementById('in-jenjang').value,
+                    tahun: document.getElementById('in-tahun').value,
+                    semester: document.getElementById('in-semester').value,
+                    jenis: document.getElementById('in-jenis').value,
+                    mapel: document.getElementById('in-mapel').value,
+                    kelas: document.getElementById('in-kelas').value,
+                    guru: document.getElementById('in-guru').value,
+                    tempatTanggal: document.getElementById('in-tempat-tanggal').value,
+                    kepalaSekolah: document.getElementById('in-kepsek').value,
+                    nipKepsek: document.getElementById('in-nip-kepsek').value,
+                    nipGuru: document.getElementById('in-nip-guru').value
+                };
+                
+                const newSiswa = parseInt(document.getElementById('in-jmlsiswa').value);
+                const newSoal = parseInt(document.getElementById('in-jmlsoal').value);
+                
+                this.state.config.jmlSiswa = newSiswa;
+                this.state.config.jmlSoal = newSoal;
+
+                if(oldSiswa !== newSiswa || oldSoal !== newSoal) {
+                    this.generateEmptyGrids();
+                    showToast("Identitas disimpan. Grid Kunci & Jawaban disesuaikan.");
+                } else {
+                    showToast("Identitas berhasil disimpan!");
+                }
+                
+                this.saveData();
+                this.updateDashboard();
+                setTimeout(() => switchTab('dashboard'), 500);
+            },
+
+            updateDashboard() {
+                const id = this.state.identitas;
+                document.getElementById('dash-siswa').innerText = this.state.config.jmlSiswa;
+                document.getElementById('dash-soal').innerText = this.state.config.jmlSoal;
+                
+                document.getElementById('info-sekolah').innerText = id.sekolah || '-';
+                document.getElementById('info-mapel').innerText = id.mapel || '-';
+                document.getElementById('info-kelas').innerText = `${id.kelas || '-'} / ${id.semester}`;
+                document.getElementById('info-guru').innerText = id.guru || '-';
+                
+                // Set Global HTML Print values (untuk class-based karena dipakai di 2 template)
+                document.querySelectorAll('.print-sekolah').forEach(el => el.innerText = id.sekolah || 'NAMA SEKOLAH');
+                document.querySelectorAll('.print-tahun').forEach(el => el.innerText = `Tahun Pelajaran: ${id.tahun} | Semester: ${id.semester}`);
+                document.querySelectorAll('.print-mapel').forEach(el => el.innerText = id.mapel);
+                document.querySelectorAll('.print-kelas').forEach(el => el.innerText = id.kelas);
+                document.querySelectorAll('.print-jenis').forEach(el => el.innerText = id.jenis);
+                document.querySelectorAll('.print-guru').forEach(el => el.innerText = id.guru);
+                document.querySelectorAll('.print-jmlsiswa').forEach(el => el.innerText = this.state.config.jmlSiswa);
+                document.querySelectorAll('.print-jmlsoal').forEach(el => el.innerText = this.state.config.jmlSoal);
+
+                // TTD Section (HTML Print)
+                document.querySelectorAll('.print-ttd-kepsek').forEach(el => el.innerText = id.kepalaSekolah || '...........................................');
+                document.querySelectorAll('.print-nip-kepsek').forEach(el => el.innerText = id.nipKepsek ? `NIP. ${id.nipKepsek}` : 'NIP. .........................');
+                document.querySelectorAll('.print-tempat-tanggal').forEach(el => el.innerText = id.tempatTanggal ? `${id.tempatTanggal}` : '......................., ......................');
+                document.querySelectorAll('.print-ttd-guru').forEach(el => el.innerText = id.guru || '...........................................');
+                document.querySelectorAll('.print-nip-guru').forEach(el => el.innerText = id.nipGuru ? `NIP. ${id.nipGuru}` : 'NIP. .........................');
+
+                document.getElementById('lbl-jml-soal').innerText = this.state.config.jmlSoal;
+                document.getElementById('lbl-jml-siswa').innerText = this.state.config.jmlSiswa;
+            },
+
+            renderKunciTable() {
+                const tbody = document.getElementById('table-kunci-body');
+                tbody.innerHTML = '';
+                this.state.kunci.forEach((k, i) => {
+                    const tr = document.createElement('tr');
+                    tr.className = "bg-white border-b hover:bg-gray-50";
+                    tr.innerHTML = `
+                        <td class="px-6 py-2 text-center font-medium">${i + 1}</td>
+                        <td class="px-6 py-2">
+                            <select class="p-1.5 border rounded w-full bg-white key-tipe" data-idx="${i}">
+                                <option value="PG" ${k.tipe === 'PG' ? 'selected' : ''}>Pilihan Ganda</option>
+                                <option value="Isian" ${k.tipe === 'Isian' ? 'selected' : ''}>Isian Singkat</option>
+                                <option value="Esai" ${k.tipe === 'Esai' ? 'selected' : ''}>Esai</option>
+                            </select>
+                        </td>
+                        <td class="px-6 py-2">
+                            <input type="text" class="p-1.5 border rounded w-full uppercase key-val" data-idx="${i}" value="${k.jawaban}" placeholder="A/B/C/D atau Bobot Skor Maksimal">
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            },
+
+            saveKunci() {
+                const tipes = document.querySelectorAll('.key-tipe');
+                const vals = document.querySelectorAll('.key-val');
+                tipes.forEach((el, i) => {
+                    this.state.kunci[i].tipe = el.value;
+                    this.state.kunci[i].jawaban = vals[i].value.trim().toUpperCase();
+                });
+                this.saveData();
+                showToast("Kunci Jawaban tersimpan!");
+            },
+
+            renderJawabanTable() {
+                const thead = document.getElementById('table-jawaban-header');
+                const tbody = document.getElementById('table-jawaban-body');
+                
+                let thHtml = `<th class="px-4 py-3 bg-gray-100 sticky left-0 z-20 w-12 text-center">No</th>
+                              <th class="px-4 py-3 bg-gray-100 sticky left-12 z-20 min-w-[150px]">Nama Siswa</th>`;
+                for(let i=0; i<this.state.config.jmlSoal; i++) {
+                    thHtml += `<th class="px-2 py-3 text-center w-10 border-l border-gray-200" title="${this.state.kunci[i].tipe}">${i+1}</th>`;
+                }
+                thead.innerHTML = thHtml;
+
+                tbody.innerHTML = '';
+                this.state.jawabanSiswa.forEach((s, i) => {
+                    const tr = document.createElement('tr');
+                    tr.className = "bg-white border-b hover:bg-gray-50";
+                    
+                    let tdHtml = `<td class="px-4 py-2 text-center sticky left-0 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-10">${i + 1}</td>
+                                  <td class="px-4 py-2 sticky left-12 bg-white shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-10">
+                                    <input type="text" class="p-1 border-b border-transparent hover:border-gray-300 focus:border-primary outline-none w-full bg-transparent ans-name" data-idx="${i}" value="${s.nama}">
+                                  </td>`;
+                    
+                    for(let j=0; j<this.state.config.jmlSoal; j++) {
+                        tdHtml += `<td class="px-1 py-1 border-l border-gray-100">
+                            <input type="text" class="w-8 p-1 text-center border border-gray-200 rounded text-xs uppercase focus:ring-1 focus:ring-primary outline-none ans-val" data-sidx="${i}" data-qidx="${j}" value="${s.jawaban[j] || ''}">
+                        </td>`;
+                    }
+                    tr.innerHTML = tdHtml;
+                    tbody.appendChild(tr);
+                });
+            },
+
+            saveJawaban() {
+                if(!document.querySelector('.ans-name')) return; // Guard
+                const names = document.querySelectorAll('.ans-name');
+                const inputs = document.querySelectorAll('.ans-val');
+                names.forEach((el, i) => { this.state.jawabanSiswa[i].nama = el.value.trim(); });
+                inputs.forEach(el => {
+                    const sIdx = el.dataset.sidx;
+                    const qIdx = el.dataset.qidx;
+                    this.state.jawabanSiswa[sIdx].jawaban[qIdx] = el.value.trim().toUpperCase();
+                });
+                this.saveData();
+                showToast("Jawaban Siswa tersimpan!");
+            },
+
+            processAnalysis() {
+                if(document.getElementById('input-kunci').classList.contains('active')) this.saveKunci();
+                if(document.getElementById('input-jawaban').classList.contains('active')) this.saveJawaban();
+
+                const K = this.state.config.jmlSoal;
+                const N = this.state.config.jmlSiswa;
+                const keys = this.state.kunci;
+                const students = this.state.jawabanSiswa;
+
+                let scoresMatrix = []; 
+                let studentTotals = [];
+                let questionCorrectCounts = Array(K).fill(0);
+
+                students.forEach((s, sIdx) => {
+                    let stTotal = 0;
+                    let stRow = [];
+                    keys.forEach((k, qIdx) => {
+                        let score = 0;
+                        let sAns = s.jawaban[qIdx];
+                        
+                        if(k.tipe === 'PG') {
+                            score = (sAns === k.jawaban && sAns !== '') ? 1 : 0;
+                        } else {
+                            score = parseFloat(sAns) > 0 ? 1 : 0; 
+                            stTotal += parseFloat(sAns) || 0; 
+                        }
+                        
+                        if(k.tipe === 'PG') stTotal += score;
+                        stRow.push(score);
+                        if(score > 0) questionCorrectCounts[qIdx]++;
+                    });
+                    scoresMatrix.push(stRow);
+                    studentTotals.push({ id: sIdx, total: stTotal, row: stRow });
+                });
+
+                let sortedStudents = [...studentTotals].sort((a, b) => b.total - a.total);
+                let halfN = Math.floor(N / 2);
+                let topGroup = sortedStudents.slice(0, halfN);
+                let bottomGroup = sortedStudents.slice(-halfN);
+
+                let results = [];
+                let validCount = 0;
+
+                let meanTotal = studentTotals.reduce((sum, s) => sum + s.total, 0) / N;
+                let varTotal = studentTotals.reduce((sum, s) => sum + Math.pow(s.total - meanTotal, 2), 0) / N;
+                let sumPQ = 0;
+
+                for(let q=0; q<K; q++) {
+                    let P = questionCorrectCounts[q] / N;
+                    let pCat = P > 0.7 ? 'Mudah' : (P >= 0.3 ? 'Sedang' : 'Sukar');
+
+                    let BA = topGroup.filter(s => s.row[q] > 0).length;
+                    let BB = bottomGroup.filter(s => s.row[q] > 0).length;
+                    let D = (BA - BB) / halfN;
+                    let dCat = D >= 0.4 ? 'Sangat Baik' : (D >= 0.3 ? 'Baik' : (D >= 0.2 ? 'Cukup' : 'Jelek'));
+
+                    let meanX = 0, varX = 0, covXY = 0;
+                    studentTotals.forEach(s => { meanX += s.row[q]; });
+                    meanX /= N;
+                    studentTotals.forEach(s => {
+                        varX += Math.pow(s.row[q] - meanX, 2);
+                        covXY += (s.row[q] - meanX) * (s.total - meanTotal);
+                    });
+                    varX /= N; covXY /= N;
+                    
+                    let stdX = Math.sqrt(varX);
+                    let stdY = Math.sqrt(varTotal);
+                    let r = (stdX > 0 && stdY > 0) ? covXY / (stdX * stdY) : 0;
+                    
+                    let rCat = r >= 0.4 ? 'Valid' : (r >= 0.2 ? 'Cukup Valid' : 'Tidak Valid');
+                    if (r >= 0.4) validCount++;
+
+                    sumPQ += (P * (1 - P));
+
+                    let rec = 'Direvisi';
+                    if (r >= 0.3 && D >= 0.25 && P >= 0.2 && P <= 0.8) rec = 'Dipakai';
+                    if (r < 0.2 || D < 0.1) rec = 'Dibuang';
+
+                    results.push({ no: q+1, p: P, pCat, d: D, dCat, r: r, rCat, rec });
+                }
+
+                let reliabilitas = 0;
+                if(varTotal > 0 && K > 1) {
+                    reliabilitas = (K / (K - 1)) * (1 - (sumPQ / varTotal));
+                }
+                let relCat = reliabilitas >= 0.8 ? 'Sangat Tinggi' : (reliabilitas >= 0.6 ? 'Tinggi' : (reliabilitas >= 0.4 ? 'Cukup' : 'Rendah'));
+
+                this.analysisResult = { items: results, reliabilitas, relCat, validCount, K };
+                
+                showToast("Analisis Selesai!");
+                this.renderAnalisis();
+                switchTab('analisis');
+            },
+
+            renderAnalisis() {
+                if(!this.analysisResult) return;
+                const res = this.analysisResult;
+
+                document.getElementById('dash-valid').innerText = `${res.validCount} / ${res.K}`;
+                document.getElementById('dash-reliabilitas').innerText = res.reliabilitas.toFixed(2);
+                if(document.getElementById('print-reliabilitas')) {
+                    document.getElementById('print-reliabilitas').innerText = res.reliabilitas.toFixed(3);
+                    document.getElementById('print-reliabilitas-ket').innerText = `(${res.relCat})`;
+                }
+
+                const tbody = document.getElementById('table-analisis-body');
+                const printTbody = document.getElementById('print-table-body');
+                tbody.innerHTML = '';
+                printTbody.innerHTML = '';
+
+                res.items.forEach(item => {
+                    let pColor = item.pCat === 'Sukar' ? 'text-red-600' : (item.pCat === 'Mudah' ? 'text-green-600' : 'text-yellow-600');
+                    let rColor = item.rCat === 'Tidak Valid' ? 'text-red-600' : 'text-green-600';
+                    let recBg = item.rec === 'Dipakai' ? 'bg-green-100 text-green-800' : (item.rec === 'Dibuang' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800');
+
+                    const tr = document.createElement('tr');
+                    tr.className = "bg-white border-b hover:bg-gray-50";
+                    tr.innerHTML = `
+                        <td class="px-4 py-2 text-center border-r font-medium">${item.no}</td>
+                        <td class="px-4 py-2 border-r">
+                            <span class="font-bold">${item.p.toFixed(2)}</span> <span class="text-xs ${pColor}">(${item.pCat})</span>
+                        </td>
+                        <td class="px-4 py-2 border-r">
+                            <span class="font-bold">${item.d.toFixed(2)}</span> <span class="text-xs text-gray-500">(${item.dCat})</span>
+                        </td>
+                        <td class="px-4 py-2 border-r">
+                            <span class="font-bold ${rColor}">${item.r.toFixed(2)}</span> <span class="text-xs text-gray-500">(${item.rCat})</span>
+                        </td>
+                        <td class="px-4 py-2 text-center">
+                            <span class="px-2 py-1 rounded text-xs font-bold ${recBg}">${item.rec}</span>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+
+                    const ptr = document.createElement('tr');
+                    ptr.innerHTML = `
+                        <td class="border border-black p-1 text-center">${item.no}</td>
+                        <td class="border border-black p-1 text-center">${item.p.toFixed(2)} <br><span class="italic">(${item.pCat})</span></td>
+                        <td class="border border-black p-1 text-center">${item.d.toFixed(2)} <br><span class="italic">(${item.dCat})</span></td>
+                        <td class="border border-black p-1 text-center">${item.r.toFixed(2)} <br><span class="italic">(${item.rCat})</span></td>
+                        <td class="border border-black p-1 text-center font-bold">${item.rec}</td>
+                    `;
+                    printTbody.appendChild(ptr);
+                });
+            },
+
+            renderCharts() {
+                if(!this.analysisResult) return;
+                const items = this.analysisResult.items;
+
+                let pDist = { Sukar: 0, Sedang: 0, Mudah: 0 };
+                let recDist = { Dipakai: 0, Direvisi: 0, Dibuang: 0 };
+                items.forEach(i => { pDist[i.pCat]++; recDist[i.rec]++; });
+
+                if(this.charts.kesukaran) this.charts.kesukaran.destroy();
+                const ctx1 = document.getElementById('chartKesukaran').getContext('2d');
+                this.charts.kesukaran = new Chart(ctx1, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Sukar', 'Sedang', 'Mudah'],
+                        datasets: [{
+                            label: 'Jumlah Soal',
+                            data: [pDist.Sukar, pDist.Sedang, pDist.Mudah],
+                            backgroundColor: ['#f87171', '#fbbf24', '#34d399'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
+
+                if(this.charts.rekomendasi) this.charts.rekomendasi.destroy();
+                const ctx2 = document.getElementById('chartRekomendasi').getContext('2d');
+                this.charts.rekomendasi = new Chart(ctx2, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Dipakai', 'Direvisi', 'Dibuang'],
+                        datasets: [{
+                            data: [recDist.Dipakai, recDist.Direvisi, recDist.Dibuang],
+                            backgroundColor: ['#10b981', '#fbbf24', '#ef4444'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: { maintainAspectRatio: false }
+                });
+            },
+
+            // --- EXCEL IMPORT / EXPORT LOGICS ---
+
+            downloadTemplateKunci() {
+                let data = [["No", "Jenis Soal (PG/Isian/Esai)", "Kunci/Bobot"]];
+                for(let i=1; i<=this.state.config.jmlSoal; i++) data.push([i, "PG", ""]);
+                const ws = XLSX.utils.aoa_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+                XLSX.writeFile(wb, "Template_Kunci_Jawaban.xlsx");
+            },
+
+            downloadTemplateJawaban() {
+                let header = ["No", "Nama Siswa"];
+                for(let i=1; i<=this.state.config.jmlSoal; i++) header.push(i.toString());
+                let data = [header];
+                for(let i=1; i<=this.state.config.jmlSiswa; i++) {
+                    let row = [i, `Siswa ${i}`];
+                    for(let j=1; j<=this.state.config.jmlSoal; j++) row.push("");
+                    data.push(row);
+                }
+                const ws = XLSX.utils.aoa_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+                XLSX.writeFile(wb, "Template_Jawaban_Siswa.xlsx");
+            },
+
+            importKunci(event) {
+                const file = event.target.files[0];
+                if(!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheetName = workbook.SheetNames[0];
+                    const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {header: 1});
+                    for(let i=1; i<json.length; i++) {
+                        let row = json[i];
+                        if(!row || row.length < 2) continue;
+                        let idx = i - 1;
+                        if(idx < this.state.config.jmlSoal) {
+                            this.state.kunci[idx].tipe = row[1] || 'PG';
+                            this.state.kunci[idx].jawaban = (row[2] || '').toString().trim().toUpperCase();
+                        }
+                    }
+                    this.renderKunciTable();
+                    this.saveData();
+                    showToast("Kunci berhasil diimport!");
+                };
+                reader.readAsArrayBuffer(file);
+                event.target.value = '';
+            },
+
+            importJawaban(event) {
+                const file = event.target.files[0];
+                if(!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheetName = workbook.SheetNames[0];
+                    const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {header: 1});
+                    for(let i=1; i<json.length; i++) {
+                        let row = json[i];
+                        if(!row || row.length < 2) continue;
+                        let sIdx = i - 1;
+                        if(sIdx < this.state.config.jmlSiswa) {
+                            this.state.jawabanSiswa[sIdx].nama = row[1] || `Siswa ${i}`;
+                            for(let q=0; q<this.state.config.jmlSoal; q++) {
+                                this.state.jawabanSiswa[sIdx].jawaban[q] = (row[q+2] || '').toString().trim().toUpperCase();
+                            }
+                        }
+                    }
+                    this.renderJawabanTable();
+                    this.saveData();
+                    showToast("Jawaban berhasil diimport!");
+                };
+                reader.readAsArrayBuffer(file);
+                event.target.value = '';
+            },
+
+            // --- 1. CETAK / EXPORT ANALISIS ---
+            
+            printAnalisis() {
+                if(!this.analysisResult) {
+                    showToast("Lakukan analisis terlebih dahulu!", true);
+                    return;
+                }
+                document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
+                document.getElementById('print-template-analisis').classList.add('active-print');
+                window.print();
+            },
+
+            exportExcelLaporan() {
+                if(!this.analysisResult) {
+                    showToast("Lakukan analisis terlebih dahulu!", true);
+                    return;
+                }
+                const id = this.state.identitas;
+                const textTempat = id.tempatTanggal ? `${id.tempatTanggal}` : '......................., ..........................';
+                const namaKepsek = id.kepalaSekolah ? id.kepalaSekolah : '.........................................';
+                const nipKepsek = id.nipKepsek ? `NIP. ${id.nipKepsek}` : 'NIP. .........................';
+                const namaGuru = id.guru ? id.guru : '.........................................';
+                const nipGuru = id.nipGuru ? `NIP. ${id.nipGuru}` : 'NIP. .........................';
+
+                let data = [
+                    ["LAPORAN HASIL ANALISIS BUTIR SOAL"],
+                    [],
+                    ["Mata Pelajaran", ": " + id.mapel, "", "", "Tahun Pelajaran", ": " + id.tahun, "", ""],
+                    ["Kelas / Semester", ": " + id.kelas + " / " + id.semester, "", "", "Jenis Tes", ": " + id.jenis, "", ""],
+                    ["Nama Sekolah", ": " + id.sekolah, "", "", "Jml Siswa/Soal", ": " + this.state.config.jmlSiswa + " / " + this.state.config.jmlSoal, "", ""],
+                    ["Reliabilitas Tes", ": " + this.analysisResult.reliabilitas.toFixed(3) + " (" + this.analysisResult.relCat + ")", "", "", "", "", "", ""],
+                    [],
+                    ["No", "Tk. Kesukaran (P)", "Kriteria P", "Daya Pembeda (D)", "Kriteria D", "Validitas (r)", "Kriteria r", "Keputusan"]
+                ];
+
+                let rowIndex = 7; 
+                this.analysisResult.items.forEach(i => {
+                    data.push([
+                        i.no, parseFloat(i.p.toFixed(2)), i.pCat, parseFloat(i.d.toFixed(2)), i.dCat, parseFloat(i.r.toFixed(2)), i.rCat, i.rec
+                    ]);
+                    rowIndex++;
+                });
+
+                data.push([], []);
+                data.push(["", "Mengetahui,", "", "", "", "", textTempat, ""]);
+                data.push(["", "Kepala Sekolah,", "", "", "", "", "Guru Mata Pelajaran,", ""]);
+                data.push([], [], []);
+                data.push(["", namaKepsek, "", "", "", "", namaGuru, ""]);
+                data.push(["", nipKepsek, "", "", "", "", nipGuru, ""]);
+
+                const ws = XLSX.utils.aoa_to_sheet(data);
+
+                ws['!cols'] = [
+                    {wch: 5}, {wch: 18}, {wch: 13}, {wch: 18}, {wch: 13}, {wch: 15}, {wch: 13}, {wch: 18}
+                ];
+                ws['!merges'] = [
+                    { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } },
+                    { s: { r: 5, c: 1 }, e: { r: 5, c: 4 } },
+                ];
+
+                const tableStartRow = 7;
+                const tableEndRow = tableStartRow + this.analysisResult.K;
+
+                for (let i in ws) {
+                    if (i[0] === '!') continue;
+                    let col = i.replace(/[0-9]/g, '');
+                    let row = parseInt(i.replace(/\D/g, '')) - 1;
+
+                    ws[i].s = { font: { name: "Arial", sz: 11 }, alignment: { vertical: "center" } };
+
+                    if (row === 0) ws[i].s = { font: { name: "Arial", sz: 14, bold: true }, alignment: { horizontal: "center", vertical: "center" } };
+                    
+                    if (row >= 2 && row <= 5 && (col === 'A' || col === 'E')) ws[i].s.font = { name: "Arial", sz: 11, bold: true };
+
+                    if (row === tableStartRow) {
+                        ws[i].s = { 
+                            font: { name: "Arial", sz: 11, bold: true }, alignment: { horizontal: "center", vertical: "center" },
+                            fill: { fgColor: { rgb: "E2E8F0" } },
+                            border: { top: {style: "medium"}, bottom: {style: "medium"}, left: {style: "medium"}, right: {style: "medium"} }
+                        };
+                    }
+
+                    if (row > tableStartRow && row <= tableEndRow) {
+                        ws[i].s = {
+                            font: { name: "Arial", sz: 11 }, alignment: { horizontal: "center", vertical: "center" },
+                            border: { top: {style: "thin"}, bottom: {style: "thin"}, left: {style: "thin"}, right: {style: "thin"} }
+                        };
+                        if (col === 'H') ws[i].s.font = { bold: true };
+                    }
+
+                    if (row >= tableEndRow + 2) {
+                        if (col === 'B' || col === 'G') ws[i].s.alignment = { horizontal: "center", vertical: "center" };
+                        if (row === tableEndRow + 6 && (col === 'B' || col === 'G')) ws[i].s.font = { name: "Arial", sz: 11, bold: true, underline: true };
+                    }
+                }
+
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Laporan Analisis");
+                XLSX.writeFile(wb, `Laporan_Analisis_${id.mapel}_${id.kelas}.xlsx`);
+            },
+
+            // --- 2. CETAK / EXPORT DATA JAWABAN SISWA ---
+
+            printJawaban() {
+                this.saveJawaban(); // Pastikan tersimpan dulu yang di layar
+                
+                // Render Table Head
+                const thead = document.getElementById('print-jawaban-thead');
+                let thHtml = `<th class="border border-black p-2 text-center w-10">No</th>
+                              <th class="border border-black p-2 w-48">Nama Siswa</th>`;
+                for(let i=1; i<=this.state.config.jmlSoal; i++) {
+                    thHtml += `<th class="border border-black p-2 text-center w-8">${i}</th>`;
+                }
+                thead.innerHTML = thHtml;
+
+                // Render Table Body
+                const tbody = document.getElementById('print-jawaban-tbody');
+                let tbHtml = '';
+                this.state.jawabanSiswa.forEach((s, i) => {
+                    tbHtml += `<tr><td class="border border-black p-1 text-center">${i+1}</td>
+                                   <td class="border border-black p-1 whitespace-nowrap overflow-hidden text-ellipsis">${s.nama}</td>`;
+                    s.jawaban.forEach(ans => {
+                        tbHtml += `<td class="border border-black p-1 text-center text-xs uppercase">${ans}</td>`;
+                    });
+                    tbHtml += `</tr>`;
+                });
+                tbody.innerHTML = tbHtml;
+
+                document.querySelectorAll('.print-section').forEach(el => el.classList.remove('active-print'));
+                document.getElementById('print-template-jawaban').classList.add('active-print');
+                
+                window.print();
+            },
+
+            exportExcelJawaban() {
+                this.saveJawaban(); // Sinkronkan data di grid
+
+                const id = this.state.identitas;
+                const textTempat = id.tempatTanggal ? `${id.tempatTanggal}` : '......................., ..........................';
+                const namaKepsek = id.kepalaSekolah ? id.kepalaSekolah : '.........................................';
+                const nipKepsek = id.nipKepsek ? `NIP. ${id.nipKepsek}` : 'NIP. .........................';
+                const namaGuru = id.guru ? id.guru : '.........................................';
+                const nipGuru = id.nipGuru ? `NIP. ${id.nipGuru}` : 'NIP. .........................';
+
+                let data = [
+                    ["DATA REKAP JAWABAN SISWA"],
+                    [],
+                    ["Mata Pelajaran", ": " + id.mapel, "", "Tahun Pelajaran", ": " + id.tahun],
+                    ["Kelas / Semester", ": " + id.kelas + " / " + id.semester, "", "Jenis Tes", ": " + id.jenis],
+                    ["Nama Sekolah", ": " + id.sekolah, "", "Jml Siswa/Soal", ": " + this.state.config.jmlSiswa + " / " + this.state.config.jmlSoal],
+                    []
+                ];
+
+                // Table Header Row
+                let headerRow = ["No", "Nama Siswa"];
+                for(let i=1; i<=this.state.config.jmlSoal; i++) headerRow.push(i);
+                data.push(headerRow);
+
+                // Table Body Rows
+                let tableStartRow = 6;
+                let rowIndex = tableStartRow + 1;
+                
+                this.state.jawabanSiswa.forEach((s, i) => {
+                    let studentRow = [i + 1, s.nama];
+                    s.jawaban.forEach(ans => studentRow.push(ans));
+                    data.push(studentRow);
+                    rowIndex++;
+                });
+
+                let tableEndRow = rowIndex - 1;
+
+                // TTD
+                data.push([], []);
+                data.push(["", "Mengetahui,", "", "", "", textTempat]);
+                data.push(["", "Kepala Sekolah,", "", "", "", "Guru Mata Pelajaran,"]);
+                data.push([], [], []);
+                data.push(["", namaKepsek, "", "", "", namaGuru]);
+                data.push(["", nipKepsek, "", "", "", nipGuru]);
+
+                const ws = XLSX.utils.aoa_to_sheet(data);
+
+                // Col widths
+                let cols = [{wch: 5}, {wch: 30}];
+                for(let i=1; i<=this.state.config.jmlSoal; i++) cols.push({wch: 5}); // soal cols
+                ws['!cols'] = cols;
+
+                // Merges
+                let lastColIndex = this.state.config.jmlSoal > 4 ? this.state.config.jmlSoal + 1 : 6;
+                ws['!merges'] = [
+                    { s: { r: 0, c: 0 }, e: { r: 0, c: lastColIndex } }, // Title merge
+                ];
+
+                // Apply Styles
+                for (let i in ws) {
+                    if (i[0] === '!') continue;
+                    let col = i.replace(/[0-9]/g, '');
+                    let colNum = XLSX.utils.decode_col(col); // 0-based col index
+                    let row = parseInt(i.replace(/\D/g, '')) - 1;
+
+                    ws[i].s = { font: { name: "Arial", sz: 11 }, alignment: { vertical: "center" } };
+
+                    if (row === 0) {
+                        ws[i].s = { font: { name: "Arial", sz: 14, bold: true }, alignment: { horizontal: "center", vertical: "center" } };
+                    }
+                    if (row >= 2 && row <= 4 && (col === 'A' || col === 'D')) {
+                        ws[i].s.font = { name: "Arial", sz: 11, bold: true };
+                    }
+
+                    // Table Header
+                    if (row === tableStartRow) {
+                        ws[i].s = { 
+                            font: { name: "Arial", sz: 11, bold: true }, alignment: { horizontal: "center", vertical: "center" },
+                            fill: { fgColor: { rgb: "E2E8F0" } },
+                            border: { top: {style: "medium"}, bottom: {style: "medium"}, left: {style: "medium"}, right: {style: "medium"} }
+                        };
+                    }
+
+                    // Table Body
+                    if (row > tableStartRow && row <= tableEndRow) {
+                        let align = colNum === 1 ? "left" : "center"; // Left align untuk Nama
+                        ws[i].s = {
+                            font: { name: "Arial", sz: 11 }, alignment: { horizontal: align, vertical: "center" },
+                            border: { top: {style: "thin"}, bottom: {style: "thin"}, left: {style: "thin"}, right: {style: "thin"} }
+                        };
+                    }
+
+                    // TTD Styles
+                    if (row >= tableEndRow + 2) {
+                        // Jika ada di kolom B atau kolom TTD sebelah kanan
+                        let rightTtdCol = 5; // Kolom F by default
+                        if(this.state.config.jmlSoal > 5) rightTtdCol = Math.min(this.state.config.jmlSoal - 2, 8); // Geser ke kanan sesuai jml soal
+
+                        if (colNum === 1 || colNum === rightTtdCol) {
+                            ws[i].s.alignment = { horizontal: "center", vertical: "center" };
+                        }
+                        if (row === tableEndRow + 6 && (colNum === 1 || colNum === rightTtdCol)) {
+                            ws[i].s.font = { name: "Arial", sz: 11, bold: true, underline: true };
+                        }
+                    }
+                }
+
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Rekap Jawaban");
+                XLSX.writeFile(wb, `Data_Jawaban_${id.mapel}_${id.kelas}.xlsx`);
+            }
+        };
+
+        // Initialize App on load
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+
+    </script>
+</body>
+</html>
